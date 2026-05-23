@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Weekly Forex Briefing</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0c0f; --surface: #111318; --surface2: #181c23;
+    --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.12);
+    --text: #e8eaf0; --muted: #6b7280; --bull: #00d084; --bear: #ff4d6d;
+    --accent: #4f8ef7; --warn: #f59e0b; --gold: #fbbf24;
+    --font-head: 'Syne', sans-serif; --font-mono: 'Space Mono', monospace;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-head); min-height: 100vh; }
+
+  .nav { position: sticky; top: 0; z-index: 100; background: rgba(10,12,15,0.95); backdrop-filter: blur(12px); border-bottom: 0.5px solid var(--border2); }
+  .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .nav-logo { font-size: 16px; font-weight: 800; color: var(--text); padding: 1rem 0; letter-spacing: -0.3px; }
+  .nav-logo span { color: var(--accent); }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab { font-family: var(--font-head); font-size: 13px; font-weight: 600; padding: 8px 18px; border-radius: 8px; border: none; background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+  .nav-tab:hover { color: var(--text); background: var(--surface2); }
+  .nav-tab.active { background: var(--surface2); color: var(--text); border: 0.5px solid var(--border2); }
+  .nav-tab.active.macro-tab { color: var(--warn); border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.08); }
+  .nav-tab.active.analysis-tab { color: var(--bull); border-color: rgba(0,208,132,0.3); background: rgba(0,208,132,0.08); }
+  .nav-week { font-family: var(--font-mono); font-size: 11px; color: var(--accent); padding: 6px 12px; background: var(--surface2); border-radius: 6px; border: 0.5px solid var(--border2); white-space: nowrap; }
+
+  .page { display: none; max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .page.active { display: block; }
+
+  .section { margin-bottom: 2rem; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
+  .section-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  .page-title { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--muted); font-family: var(--font-mono); margin-bottom: 2rem; }
+  .btn { font-family: var(--font-head); font-weight: 600; font-size: 13px; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 0.5px solid var(--border2); }
+  .btn-sm { font-size: 11px; padding: 5px 12px; border-radius: 6px; border: 0.5px solid var(--border2); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: var(--font-mono); }
+  .btn-sm:hover { color: var(--text); border-color: var(--accent); }
+  .info-note { background: var(--surface2); border: 0.5px solid var(--border2); border-radius: 8px; padding: 12px 16px; font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.6; }
+  .info-note span { color: var(--accent); }
+
+  /* MACRO */
+  .macro-hero { background: var(--surface); border: 0.5px solid var(--border2); border-radius: 14px; padding: 1.5rem; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .macro-hero-left h2 { font-size: 20px; font-weight: 800; }
+  .macro-hero-left p { font-size: 12px; color: var(--muted); font-family: var(--font-mono); margin-top: 4px; }
+  .macro-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+  .macro-stat { text-align: center; }
+  .macro-stat-val { font-size: 22px; font-weight: 800; }
+  .macro-stat-val.red { color: var(--bear); } .macro-stat-val.amber { color: var(--warn); } .macro-stat-val.blue { color: var(--accent); }
+  .macro-stat-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .day-group { margin-bottom: 1.75rem; }
+  .day-label { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .day-name { font-size: 13px; font-weight: 700; }
+  .day-line { flex: 1; height: 0.5px; background: var(--border2); }
+  .day-count { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+  .event-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 10px; display: grid; grid-template-columns: 80px 1fr auto; gap: 16px; align-items: start; }
+  .event-card.high { border-left: 3px solid var(--bear); }
+  .event-card.med { border-left: 3px solid var(--warn); }
+  .event-time { font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding-top: 2px; }
+  .event-currency { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-top: 4px; }
+  .cur-usd{background:rgba(79,142,247,0.15);color:var(--accent)}.cur-gbp{background:rgba(0,208,132,0.12);color:var(--bull)}.cur-eur{background:rgba(251,191,36,0.12);color:var(--gold)}.cur-aud{background:rgba(255,77,109,0.12);color:var(--bear)}.cur-cad{background:rgba(168,85,247,0.12);color:#c084fc}.cur-nzd{background:rgba(20,184,166,0.12);color:#2dd4bf}.cur-jpy{background:rgba(249,115,22,0.12);color:#fb923c}.cur-chf{background:rgba(255,255,255,0.08);color:var(--text)}
+  .event-name { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .event-desc { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 8px; }
+  .event-pairs { display: flex; flex-wrap: wrap; gap: 5px; }
+  .event-pair-chip { font-family: var(--font-mono); font-size: 10px; padding: 2px 7px; border-radius: 4px; background: var(--surface2); border: 0.5px solid var(--border2); color: var(--muted); }
+  .impact-badge { font-family: var(--font-mono); font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 99px; white-space: nowrap; align-self: start; }
+  .impact-badge.high{background:rgba(255,77,109,0.15);color:var(--bear)}.impact-badge.med{background:rgba(245,158,11,0.15);color:var(--warn)}
+  @media(max-width:600px){.event-card{grid-template-columns:1fr}}
+  .macro-filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .mf-btn { font-size: 11px; padding: 5px 14px; border-radius: 99px; border: 0.5px solid var(--border2); background: var(--surface); color: var(--muted); cursor: pointer; font-family: var(--font-mono); transition: all 0.15s; }
+  .mf-btn.active{border-color:var(--accent);background:rgba(79,142,247,0.12);color:var(--accent)}
+  .mf-btn.high-active{border-color:var(--bear);background:rgba(255,77,109,0.1);color:var(--bear)}
+
+  /* ANALYSIS */
+  .api-setup { background: var(--surface); border: 0.5px solid var(--border2); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .api-setup h3 { font-size: 14px; font-weight: 600; margin-bottom: 0.75rem; }
+  .api-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .api-input { flex: 1; min-width: 200px; background: var(--bg); border: 0.5px solid var(--border2); border-radius: 8px; padding: 10px 14px; font-family: var(--font-mono); font-size: 13px; color: var(--text); outline: none; }
+  .api-input:focus { border-color: var(--accent); }
+  .api-status { font-family: var(--font-mono); font-size: 12px; margin-top: 8px; }
+  .api-status.ok{color:var(--bull)}.api-status.err{color:var(--bear)}
+  .pairs-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pair-chip { font-family: var(--font-mono); font-size: 12px; padding: 6px 12px; border-radius: 6px; border: 0.5px solid var(--border2); background: var(--surface); color: var(--muted); cursor: pointer; user-select: none; transition: all 0.15s; }
+  .pair-chip:hover{border-color:var(--accent);color:var(--text)}
+  .pair-chip.active{border-color:var(--accent);background:rgba(79,142,247,0.12);color:var(--accent)}
+  .pair-chip.done{border-color:var(--bull);background:rgba(0,208,132,0.08);color:var(--bull)}
+  .pair-chip.scanning{border-color:var(--warn);background:rgba(245,158,11,0.08);color:var(--warn);animation:chipPulse 1s infinite}
+  .pair-chip.errored{border-color:var(--bear);background:rgba(255,77,109,0.08);color:var(--bear)}
+  @keyframes chipPulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+  .scan-controls { background: var(--surface); border: 0.5px solid var(--border2); border-radius: 12px; padding: 1.25rem; margin-bottom: 2rem; }
+  .scan-controls-title { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 1rem; }
+  .scan-buttons { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .btn-scan-all { background: var(--bull); color: #000; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 10px; border: none; cursor: pointer; font-family: var(--font-head); }
+  .btn-scan-all:disabled{opacity:0.4;cursor:not-allowed}
+  .btn-scan-selected { background: var(--accent); color: #fff; font-weight: 700; font-size: 13px; padding: 12px 24px; border-radius: 10px; border: none; cursor: pointer; font-family: var(--font-head); }
+  .btn-scan-selected:disabled{opacity:0.4;cursor:not-allowed}
+  .btn-clear-results { background: transparent; color: var(--bear); font-weight: 600; font-size: 12px; padding: 10px 16px; border-radius: 8px; border: 0.5px solid rgba(255,77,109,0.3); cursor: pointer; font-family: var(--font-mono); }
+  .btn-clear-results:hover{background:rgba(255,77,109,0.08)}
+
+  .scan-progress { margin-top: 1rem; display: none; }
+  .progress-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .progress-text { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+  .progress-count { font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
+  .progress-bar-wrap { background: var(--surface2); border-radius: 8px; height: 6px; width: 100%; overflow: hidden; margin-bottom: 6px; }
+  .progress-bar { height: 6px; background: var(--accent); border-radius: 8px; transition: width 0.5s ease; width: 0%; }
+  .progress-eta { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+  .rate-note { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-top: 8px; }
+  .rate-note span{color:var(--accent)}
+
+  /* AOI METHOD NOTE */
+  .method-note { background: var(--surface2); border: 0.5px solid rgba(79,142,247,0.25); border-radius: 8px; padding: 12px 16px; font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.7; }
+  .method-note span { color: var(--accent); }
+  .method-note .bull-text { color: var(--bull); }
+
+  .cache-banner { background: rgba(0,208,132,0.08); border: 0.5px solid rgba(0,208,132,0.25); border-radius: 10px; padding: 12px 16px; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .cache-banner-left { font-family: var(--font-mono); font-size: 12px; color: var(--bull); }
+  .cache-banner-left span{color:var(--muted)}
+  .cache-expiry { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+
+  .summary-bar { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 2rem; }
+  .summary-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .summary-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  .summary-val { font-size: 24px; font-weight: 800; }
+  .summary-val.green{color:var(--bull)}.summary-val.red{color:var(--bear)}.summary-val.blue{color:var(--accent)}
+
+  .results { display: flex; flex-direction: column; gap: 16px; }
+  .pair-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .pair-card.bull-card{border-left:3px solid var(--bull)}
+  .pair-card.bear-card{border-left:3px solid var(--bear)}
+  .pair-card.watch-card{border-left:3px solid var(--warn)}
+  .pair-card.avoid-card{border-left:3px solid #333}
+  .pair-card.pending-card{border-left:3px solid var(--accent);opacity:0.5}
+  .card-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; flex-wrap: wrap; gap: 8px; }
+  .card-left { display: flex; align-items: center; gap: 12px; }
+  .pair-name { font-size: 20px; font-weight: 800; }
+  .direction-badge { font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 99px; }
+  .bull-badge{background:rgba(0,208,132,0.15);color:var(--bull)}
+  .bear-badge{background:rgba(255,77,109,0.15);color:var(--bear)}
+  .mixed-badge{background:rgba(245,158,11,0.15);color:var(--warn)}
+  .card-body { padding: 0 1.25rem 1.25rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media(max-width:640px){.card-body{grid-template-columns:1fr}}
+  .card-section { background: var(--surface2); border-radius: 8px; padding: 12px; }
+  .cs-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+  .tf-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tf-pill { font-family: var(--font-mono); font-size: 10px; padding: 3px 8px; border-radius: 4px; }
+  .tf-bull{background:rgba(0,208,132,0.1);color:var(--bull);border:0.5px solid rgba(0,208,132,0.3)}
+  .tf-bear{background:rgba(255,77,109,0.1);color:var(--bear);border:0.5px solid rgba(255,77,109,0.3)}
+  .tf-neutral{background:var(--surface);color:var(--muted);border:0.5px solid var(--border2)}
+  .aoi-box { background: var(--bg); border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; font-family: var(--font-mono); font-size: 11px; }
+  .aoi-level { color: var(--gold); font-weight: 700; }
+  .aoi-detail { color: var(--muted); font-size: 10px; margin-top: 2px; }
+  .aoi-source { display: inline-block; font-size: 9px; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
+  .aoi-weekly{background:rgba(251,191,36,0.15);color:var(--gold)}
+  .aoi-daily{background:rgba(79,142,247,0.15);color:var(--accent)}
+  .aoi-combined{background:rgba(0,208,132,0.15);color:var(--bull)}
+  .checklist { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
+  .check-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .check-item.pass{color:var(--bull)}.check-item.fail{color:var(--bear)}.check-item.warn{color:var(--warn)}
+  .empty { text-align: center; padding: 3rem; color: var(--muted); font-family: var(--font-mono); font-size: 13px; }
+  .dot-live { width: 7px; height: 7px; border-radius: 50%; background: var(--bull); display: inline-block; margin-right: 6px; animation: pulse 2s infinite; }
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+  .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filter-btn { font-size: 11px; padding: 5px 14px; border-radius: 99px; border: 0.5px solid var(--border2); background: var(--surface); color: var(--muted); cursor: pointer; font-family: var(--font-mono); transition: all 0.15s; }
+  .filter-btn.active{border-color:var(--accent);background:rgba(79,142,247,0.12);color:var(--accent)}
+  .spinning{display:inline-block;animation:spin 0.8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">Forex <span>Briefing</span></div>
+    <div class="nav-tabs">
+      <button class="nav-tab macro-tab active" id="tab-macro" onclick="showPage('macro',this)">📅 Macro Events</button>
+      <button class="nav-tab analysis-tab" id="tab-analysis" onclick="showPage('analysis',this)">📊 Technical Analysis</button>
+      <button class="nav-tab" id="tab-settings" onclick="showPage('settings',this)">⚙️ Settings</button>
+    </div>
+    <div class="nav-week" id="navWeek">Loading...</div>
+  </div>
+</nav>
+
+<!-- MACRO PAGE -->
+<div class="page active" id="page-macro">
+  <div class="page-title">Macro Events</div>
+  <div class="page-sub" id="macroSubtitle">Key economic events affecting your pairs this week</div>
+  <div class="macro-hero">
+    <div class="macro-hero-left">
+      <h2>This Week's Economic Calendar</h2>
+      <p id="macroHeroSub" style="margin-top:4px;font-size:12px;font-family:var(--font-mono);color:var(--muted)">Loading live events from Forex Factory...</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div class="macro-stats">
+        <div class="macro-stat"><div class="macro-stat-val red" id="highCount">—</div><div class="macro-stat-label">High impact</div></div>
+        <div class="macro-stat"><div class="macro-stat-val amber" id="medCount">—</div><div class="macro-stat-label">Med impact</div></div>
+        <div class="macro-stat"><div class="macro-stat-val blue" id="eventDays">—</div><div class="macro-stat-label">Active days</div></div>
+      </div>
+      <button id="macroRefreshBtn" class="btn-sm" onclick="refreshMacro()" disabled style="height:fit-content">↻ Refresh</button>
+    </div>
+  </div>
+  <div class="macro-filter-row">
+    <button class="mf-btn active" id="mf-all" onclick="setMacroFilter('all')">All events</button>
+    <button class="mf-btn" id="mf-high" onclick="setMacroFilter('high')">High impact only</button>
+    <button class="mf-btn" id="mf-USD" onclick="setMacroFilter('USD')">🇺🇸 USD</button>
+    <button class="mf-btn" id="mf-GBP" onclick="setMacroFilter('GBP')">🇬🇧 GBP</button>
+    <button class="mf-btn" id="mf-EUR" onclick="setMacroFilter('EUR')">🇪🇺 EUR</button>
+    <button class="mf-btn" id="mf-AUD" onclick="setMacroFilter('AUD')">🇦🇺 AUD</button>
+    <button class="mf-btn" id="mf-CAD" onclick="setMacroFilter('CAD')">🇨🇦 CAD</button>
+    <button class="mf-btn" id="mf-NZD" onclick="setMacroFilter('NZD')">🇳🇿 NZD</button>
+    <button class="mf-btn" id="mf-JPY" onclick="setMacroFilter('JPY')">🇯🇵 JPY</button>
+    <button class="mf-btn" id="mf-CHF" onclick="setMacroFilter('CHF')">🇨🇭 CHF</button>
+  </div>
+  <div id="macroEventsList"></div>
+</div>
+
+<!-- ANALYSIS PAGE -->
+<div class="page" id="page-analysis">
+  <div class="page-title">Technical Analysis</div>
+  <div class="page-sub">Top-down structure · W / D / 4H trend · AOI detection · Results saved until Friday</div>
+
+  <div class="method-note">
+    <span>AOI Detection Method:</span> Scans <span>Weekly (2 years)</span> and <span>Daily (2 years)</span> separately for rejection zones with a minimum of 3 touches. A valid touch is any market structure point (swing high or low) whose candle body closes within or touches the zone and then rejects back out — candles that close through and continue are not counted. Zone size is capped at 60 pips. Weekly and Daily zones within 30 pips of each other are <span class="bull-text">combined into one stronger confluence zone</span>. <span>All zones within the largest trend structure are shown</span> — including those beyond current price — to support break and retest setups. Max lookback: <span>2 years Daily · 2 years Weekly</span>.
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Select pairs to analyse</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-sm" onclick="selectAll()">Select all</button>
+        <button class="btn-sm" onclick="selectNone()">Clear all</button>
+      </div>
+    </div>
+    <div class="pairs-grid" id="pairsGrid"></div>
+    <div style="margin-top:10px;font-family:var(--font-mono);font-size:11px;color:var(--muted)" id="pairCount"></div>
+  </div>
+
+  <div class="scan-controls">
+    <div class="scan-controls-title">Scan options</div>
+    <div class="scan-buttons">
+      <button class="btn-scan-all" id="btnScanAll" onclick="startScan('all')" disabled>⚡ Scan All 20 Pairs</button>
+      <button class="btn-scan-selected" id="btnScanSelected" onclick="startScan('selected')" disabled>▶ Scan Selected</button>
+      <button class="btn-clear-results" onclick="clearResults()">✕ Clear results</button>
+    </div>
+    <div class="rate-note">API rate: <span>8 credits/min · 3 credits per pair (W+D+4H)</span> → ~2 pairs/min · All 20 pairs ≈ 10 min. Results appear as each pair completes.</div>
+    <div class="scan-progress" id="scanProgress">
+      <div class="progress-header">
+        <div class="progress-text" id="progressText">Starting scan...</div>
+        <div class="progress-count" id="progressCount">0 / 0</div>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="progress-eta" id="progressEta"></div>
+    </div>
+  </div>
+
+  <div id="cacheBanner" style="display:none" class="cache-banner">
+    <div class="cache-banner-left">✓ Results loaded from this week's analysis <span id="cacheTime"></span></div>
+    <div class="cache-expiry" id="cacheExpiry"></div>
+  </div>
+
+  <div id="summarySection" style="display:none">
+    <div class="summary-bar">
+      <div class="summary-card"><div class="summary-label">Pairs scanned</div><div class="summary-val blue" id="sumScanned">0</div></div>
+      <div class="summary-card"><div class="summary-label">Bullish</div><div class="summary-val green" id="sumBull">0</div></div>
+      <div class="summary-card"><div class="summary-label">Bearish</div><div class="summary-val red" id="sumBear">0</div></div>
+      <div class="summary-card"><div class="summary-label">Top picks (GO)</div><div class="summary-val blue" id="sumTop">0</div></div>
+    </div>
+  </div>
+
+  <div id="resultsSection" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px;">
+      <div class="section-title"><span class="dot-live"></span>This week's analysis</div>
+      <div class="filter-row">
+        <button class="filter-btn active" id="fb-all" onclick="setFilter('all')">All</button>
+        <button class="filter-btn" id="fb-go" onclick="setFilter('go')">GO only</button>
+        <button class="filter-btn" id="fb-watch" onclick="setFilter('watch')">WATCH</button>
+        <button class="filter-btn" id="fb-bull" onclick="setFilter('bull')">Bullish</button>
+        <button class="filter-btn" id="fb-bear" onclick="setFilter('bear')">Bearish</button>
+      </div>
+    </div>
+    <div class="results" id="resultsContainer"></div>
+  </div>
+</div>
+
+<!-- SETTINGS PAGE -->
+<div class="page" id="page-settings">
+  <div class="page-title">Settings</div>
+  <div class="page-sub">Manage your API key and preferences</div>
+  <div class="api-setup section">
+    <h3>Twelve Data API Key</h3>
+    <div class="api-row">
+      <input class="api-input" id="apiKey" type="password" placeholder="Paste your API key here..." />
+      <button class="btn btn-primary" onclick="testAPI()">Connect</button>
+      <button class="btn btn-secondary" onclick="clearAPI()">Clear</button>
+    </div>
+    <div class="api-status" id="apiStatus"></div>
+  </div>
+  <div class="section">
+    <div class="section-title" style="margin-bottom:1rem">Strategy rules</div>
+    <div class="info-note" style="margin:0">
+      <span>Trend:</span> Weekly / Daily / 4H must all align (HH+HL = bullish · LH+LL = bearish) — all 3 timeframes must agree<br><br>
+      <span>AOI:</span> Weekly (2yr) + Daily (2yr) scanned separately · Min 3 touches · A touch = market structure point whose body closes within or at the zone and rejects back out (candles that pass through and continue are excluded) · Max 60 pips wide · W+D zones within 30 pips combined into confluence zone · All zones within largest trend structure shown including B&R levels<br><br>
+      <span>Entry:</span> H&S or inverted H&S at AOI · Break and retest of structure · Engulfing confirmation on 4H / 2H / 1H · SL 5–10 pips within AOI · TP at next structure point<br><br>
+      <span>Rules:</span> Trade Mon–Thu only · London session 08:00–17:30 GMT · Max 3 trades/week · Only trade with trend · Set and forget · If you can't explain the trade, you don't have one<br><br>
+      <span>Data:</span> Powered by Twelve Data · 8 API credits/min · Results persist until end of Friday each week
+    </div>
+  </div>
+</div>
+
+<script>
+const YOUR_PAIRS = [
+  'NZD/USD','USD/CAD','USD/JPY','CAD/JPY','GBP/CAD','EUR/JPY',
+  'NZD/CAD','EUR/GBP','GBP/AUD','GBP/USD','GBP/JPY','GBP/NZD',
+  'AUD/JPY','AUD/USD','AUD/CAD','AUD/NZD','USD/CHF','EUR/USD',
+  'EUR/NZD','GBP/CHF'
+];
+
+// ── CURRENCY → PAIRS MAP ──
+// Used to map a currency from the RSS feed to your affected pairs
+const CURRENCY_PAIRS_MAP = {
+  USD: ['EUR/USD','GBP/USD','USD/JPY','USD/CAD','AUD/USD','USD/CHF','NZD/USD'],
+  GBP: ['GBP/USD','EUR/GBP','GBP/JPY','GBP/AUD','GBP/CHF','GBP/CAD','GBP/NZD'],
+  EUR: ['EUR/USD','EUR/GBP','EUR/JPY','EUR/NZD'],
+  AUD: ['AUD/USD','GBP/AUD','AUD/JPY','AUD/CAD','AUD/NZD'],
+  CAD: ['USD/CAD','GBP/CAD','CAD/JPY','AUD/CAD','NZD/CAD'],
+  NZD: ['NZD/USD','NZD/CAD','GBP/NZD','AUD/NZD','EUR/NZD'],
+  JPY: ['USD/JPY','EUR/JPY','GBP/JPY','CAD/JPY','AUD/JPY'],
+  CHF: ['USD/CHF','GBP/CHF'],
+};
+
+// Impact keywords to detect high/medium impact from FF titles
+const HIGH_IMPACT_KEYWORDS = [
+  'rate decision','interest rate','cpi','inflation','gdp','nfp','non-farm',
+  'employment change','unemployment','monetary policy','press conference',
+  'fomc','boe','ecb','rba','boc','rbnz','snb','boj','fed chair',
+  'retail sales','jobs','labor','payroll'
+];
+const MED_IMPACT_KEYWORDS = [
+  'pmi','ism','zew','ppi','trade balance','current account','consumer',
+  'sentiment','minutes','confidence','industrial','manufacturing',
+  'housing','durable','jobless claims','claimant'
+];
+
+// Day labels used in display
+const DAY_NAMES = { MON:'Monday', TUE:'Tuesday', WED:'Wednesday', THU:'Thursday', FRI:'Friday' };
+
+// Live macro events loaded from FF RSS (or cache)
+let MACRO_EVENTS = [];
+let macroLoadStatus = 'idle'; // idle | loading | loaded | failed
+
+// ── MACRO CACHE ──
+function getMacroWeekKey() {
+  const d = new Date();
+  const mon = new Date(d);
+  mon.setDate(d.getDate() - d.getDay() + 1);
+  return `forex_macro_${mon.getFullYear()}_${mon.getMonth()}_${mon.getDate()}`;
+}
+
+function saveMacroCache(events) {
+  const fri = new Date();
+  fri.setDate(fri.getDate() - fri.getDay() + 5);
+  fri.setHours(23,59,59,999);
+  localStorage.setItem(getMacroWeekKey(), JSON.stringify({
+    events, savedAt: Date.now(), expiresAt: fri.getTime()
+  }));
+}
+
+function loadMacroCache() {
+  const raw = localStorage.getItem(getMacroWeekKey());
+  if(!raw) return null;
+  try {
+    const p = JSON.parse(raw);
+    if(Date.now() > p.expiresAt) { localStorage.removeItem(getMacroWeekKey()); return null; }
+    return p.events;
+  } catch(e) { return null; }
+}
+
+function clearOldMacroCaches() {
+  const ck = getMacroWeekKey();
+  Object.keys(localStorage).forEach(k => { if(k.startsWith('forex_macro_') && k!==ck) localStorage.removeItem(k); });
+}
+
+// ── PARSE FOREX FACTORY RSS ──
+function parseImpact(title) {
+  const t = title.toLowerCase();
+  if(HIGH_IMPACT_KEYWORDS.some(k => t.includes(k))) return 'high';
+  if(MED_IMPACT_KEYWORDS.some(k => t.includes(k))) return 'med';
+  return null; // skip low impact
+}
+
+function parseCurrency(title) {
+  const currencies = ['USD','GBP','EUR','AUD','CAD','NZD','JPY','CHF'];
+  const t = title.toUpperCase();
+  return currencies.find(c => t.includes(c)) || null;
+}
+
+function parseDayFromDate(dateStr) {
+  // FF RSS pubDate format: "Mon, 26 May 2025 00:00:00 +0000"
+  const d = new Date(dateStr);
+  if(isNaN(d)) return null;
+  const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  return days[d.getDay()] || null;
+}
+
+function parseTimeFromDate(dateStr) {
+  const d = new Date(dateStr);
+  if(isNaN(d)) return 'Tentative';
+  const h = d.getUTCHours().toString().padStart(2,'0');
+  const m = d.getUTCMinutes().toString().padStart(2,'0');
+  return `${h}:${m} GMT`;
+}
+
+function parseFForexFactoryRSS(xmlText) {
+  const parser = new DOMParser();
+  const xml = parser.parseFromString(xmlText, 'text/xml');
+  const items = xml.querySelectorAll('item');
+  const events = [];
+
+  items.forEach(item => {
+    const title    = item.querySelector('title')?.textContent?.trim() || '';
+    const pubDate  = item.querySelector('pubDate')?.textContent?.trim() || '';
+    const desc     = item.querySelector('description')?.textContent?.trim() || '';
+
+    const impact   = parseImpact(title);
+    if(!impact) return; // skip low-impact events
+
+    const currency = parseCurrency(title);
+    if(!currency) return; // skip if no recognisable currency
+
+    const pairs = CURRENCY_PAIRS_MAP[currency] || [];
+    if(!pairs.length) return; // skip currencies not in your pairs
+
+    const day  = parseDayFromDate(pubDate);
+    if(!day || day === 'SAT' || day === 'SUN' || day === 'FRI') return; // Mon–Thu only
+
+    const time = parseTimeFromDate(pubDate);
+
+    // Clean up description — strip HTML tags
+    const cleanDesc = desc.replace(/<[^>]+>/g, '').trim() ||
+      `${currency} event — check forexfactory.com for full details.`;
+
+    events.push({ day, time, name: title, impact, currency, desc: cleanDesc, pairs });
+  });
+
+  return events;
+}
+
+// ── FETCH LIVE MACRO EVENTS ──
+async function fetchMacroEvents() {
+  macroLoadStatus = 'loading';
+  updateMacroStatus('loading');
+
+  // Try Forex Factory RSS via a CORS proxy
+  // We try two proxies in case one is blocked
+  const FF_URL = 'https://www.forexfactory.com/ff_calendar_thisweek.xml';
+  const PROXIES = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(FF_URL)}`,
+    `https://corsproxy.io/?${encodeURIComponent(FF_URL)}`,
+  ];
+
+  for(const proxy of PROXIES) {
+    try {
+      const r = await fetch(proxy, { signal: AbortSignal.timeout(8000) });
+      if(!r.ok) continue;
+      const text = await r.text();
+      if(!text.includes('<item>')) continue; // not valid RSS
+
+      const events = parseFForexFactoryRSS(text);
+      if(events.length === 0) continue;
+
+      MACRO_EVENTS = events;
+      saveMacroCache(events);
+      macroLoadStatus = 'loaded';
+      updateMacroStatus('loaded', events.length);
+      renderMacroEvents();
+      return;
+    } catch(e) {
+      continue; // try next proxy
+    }
+  }
+
+  // All proxies failed — check cache as fallback
+  const cached = loadMacroCache();
+  if(cached && cached.length > 0) {
+    MACRO_EVENTS = cached;
+    macroLoadStatus = 'cached';
+    updateMacroStatus('cached', cached.length);
+    renderMacroEvents();
+    return;
+  }
+
+  // Complete failure — show error state
+  macroLoadStatus = 'failed';
+  updateMacroStatus('failed');
+  renderMacroEvents();
+}
+
+function updateMacroStatus(status, count) {
+  const hero = document.getElementById('macroHeroSub');
+  const refreshBtn = document.getElementById('macroRefreshBtn');
+  if(!hero) return;
+  if(status === 'loading') {
+    hero.textContent = '⟳ Fetching live events from Forex Factory...';
+    hero.style.color = 'var(--accent)';
+    if(refreshBtn) refreshBtn.disabled = true;
+  } else if(status === 'loaded') {
+    hero.textContent = `Live data · ${count} events loaded from Forex Factory · Refreshes each week`;
+    hero.style.color = 'var(--bull)';
+    if(refreshBtn) { refreshBtn.disabled = false; refreshBtn.textContent = '↻ Refresh'; }
+  } else if(status === 'cached') {
+    hero.textContent = `Cached data · ${count} events · Live fetch failed, using saved events`;
+    hero.style.color = 'var(--warn)';
+    if(refreshBtn) { refreshBtn.disabled = false; refreshBtn.textContent = '↻ Retry'; }
+  } else {
+    hero.textContent = 'Could not load live events — check your connection or visit forexfactory.com directly';
+    hero.style.color = 'var(--bear)';
+    if(refreshBtn) { refreshBtn.disabled = false; refreshBtn.textContent = '↻ Retry'; }
+  }
+}
+
+// ── STATE ──
+let selectedPairs = [...YOUR_PAIRS];
+let apiKey = '';
+let analysisResults = [];
+let currentFilter = 'all';
+let macroFilter = 'all';
+let isScanning = false;
+let scanQueue = [];
+let scanDone = 0;
+let scanTotal = 0;
+
+// ── CACHE ──
+function getWeekKey() {
+  const d = new Date();
+  const mon = new Date(d);
+  mon.setDate(d.getDate() - d.getDay() + 1);
+  return `forex_results_${mon.getFullYear()}_${mon.getMonth()}_${mon.getDate()}`;
+}
+function getFridayEnd() {
+  const d = new Date();
+  const fri = new Date(d);
+  fri.setDate(d.getDate() - d.getDay() + 5);
+  fri.setHours(23,59,59,999);
+  return fri;
+}
+function saveResults() {
+  const payload = { results: analysisResults, savedAt: Date.now(), expiresAt: getFridayEnd().getTime() };
+  localStorage.setItem(getWeekKey(), JSON.stringify(payload));
+}
+function loadCachedResults() {
+  const raw = localStorage.getItem(getWeekKey());
+  if(!raw) return null;
+  try {
+    const p = JSON.parse(raw);
+    if(Date.now() > p.expiresAt) { localStorage.removeItem(getWeekKey()); return null; }
+    return p;
+  } catch(e) { return null; }
+}
+function clearOldCaches() {
+  const ck = getWeekKey();
+  Object.keys(localStorage).forEach(k => { if(k.startsWith('forex_results_') && k!==ck) localStorage.removeItem(k); });
+}
+
+// ── INIT ──
+function init() {
+  clearOldCaches();
+  clearOldMacroCaches();
+
+  const d = new Date();
+  const mon = new Date(d); mon.setDate(d.getDate()-d.getDay()+1);
+  const fri = new Date(mon); fri.setDate(mon.getDate()+4);
+  const fmt = x => x.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  document.getElementById('navWeek').textContent = `${fmt(mon)} – ${fmt(fri)}`;
+  document.getElementById('macroSubtitle').textContent = `Week of ${fmt(mon)} · ${YOUR_PAIRS.length} pairs tracked`;
+
+  const saved = localStorage.getItem('td_api_key');
+  if(saved) { apiKey=saved; document.getElementById('apiKey').value=saved; document.getElementById('apiStatus').className='api-status ok'; document.getElementById('apiStatus').textContent='API key loaded'; enableScanButtons(); }
+
+  const savedPairs = localStorage.getItem('selected_pairs_v2');
+  if(savedPairs) selectedPairs = JSON.parse(savedPairs);
+
+  buildPairsGrid();
+  updatePairCount();
+
+  // Load macro events — use cache if available, otherwise fetch live
+  const cachedMacro = loadMacroCache();
+  if(cachedMacro && cachedMacro.length > 0) {
+    MACRO_EVENTS = cachedMacro;
+    macroLoadStatus = 'loaded';
+    updateMacroStatus('loaded', cachedMacro.length);
+    renderMacroEvents();
+  } else {
+    // No cache — fetch live from Forex Factory
+    macroLoadStatus = 'loading';
+    renderMacroEvents(); // shows spinner
+    fetchMacroEvents();
+  }
+
+  const cached = loadCachedResults();
+  if(cached) {
+    analysisResults = cached.results;
+    const sa = new Date(cached.savedAt), ex = new Date(cached.expiresAt);
+    document.getElementById('cacheBanner').style.display = 'flex';
+    document.getElementById('cacheTime').textContent = `· scanned ${sa.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'})} at ${sa.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
+    document.getElementById('cacheExpiry').textContent = `Expires ${ex.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'})} at midnight`;
+    renderAllResults();
+  }
+}
+
+// ── NAV ──
+function showPage(page, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── MACRO ──
+function setMacroFilter(f) {
+  macroFilter = f;
+  document.querySelectorAll('.mf-btn').forEach(b=>b.classList.remove('active','high-active'));
+  const btn = document.getElementById('mf-'+f);
+  if(btn) btn.classList.add(f==='high'?'high-active':'active');
+  renderMacroEvents();
+}
+
+function currencyClass(cur) {
+  return {USD:'cur-usd',GBP:'cur-gbp',EUR:'cur-eur',AUD:'cur-aud',CAD:'cur-cad',NZD:'cur-nzd',JPY:'cur-jpy',CHF:'cur-chf'}[cur]||'cur-usd';
+}
+
+function renderMacroEvents() {
+  const container = document.getElementById('macroEventsList');
+
+  // Loading state
+  if(macroLoadStatus === 'loading') {
+    container.innerHTML = `<div class="empty" style="color:var(--accent)"><span class="spinning" style="font-size:20px">⟳</span><br><br>Fetching live events from Forex Factory...<br><span style="font-size:11px;color:var(--muted);margin-top:6px;display:block">This may take a few seconds</span></div>`;
+    return;
+  }
+
+  // Failed with no cache
+  if(macroLoadStatus === 'failed' && MACRO_EVENTS.length === 0) {
+    container.innerHTML = `<div class="empty">
+      <div style="font-size:24px;margin-bottom:12px">⚠️</div>
+      <div style="color:var(--bear);margin-bottom:8px">Could not load live events</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.6">
+        Forex Factory RSS could not be reached.<br>
+        Please visit <a href="https://www.forexfactory.com/calendar" target="_blank" style="color:var(--accent)">forexfactory.com/calendar</a> directly<br>
+        or click Retry above to try again.
+      </div>
+    </div>`;
+    return;
+  }
+
+  let events = MACRO_EVENTS;
+  if(macroFilter==='high') events=events.filter(e=>e.impact==='high');
+  else if(macroFilter!=='all') events=events.filter(e=>e.currency===macroFilter);
+
+  // Update stats
+  document.getElementById('highCount').textContent = MACRO_EVENTS.filter(e=>e.impact==='high').length;
+  document.getElementById('medCount').textContent  = MACRO_EVENTS.filter(e=>e.impact==='med').length;
+  document.getElementById('eventDays').textContent = [...new Set(MACRO_EVENTS.map(e=>e.day))].length;
+
+  // Group by day
+  const grouped = {MON:[],TUE:[],WED:[],THU:[]};
+  events.forEach(e=>{ if(grouped[e.day]) grouped[e.day].push(e); });
+
+  container.innerHTML = '';
+
+  let hasAny = false;
+  Object.entries(grouped).forEach(([day,evs])=>{
+    if(!evs.length) return;
+    hasAny = true;
+    const g = document.createElement('div'); g.className='day-group';
+    g.innerHTML = `<div class="day-label"><div class="day-name">${DAY_NAMES[day]}</div><div class="day-line"></div><div class="day-count">${evs.length} event${evs.length>1?'s':''}</div></div>`;
+    evs.forEach(e=>{
+      const ap = (e.pairs||[]).filter(p=>YOUR_PAIRS.includes(p));
+      const card = document.createElement('div'); card.className=`event-card ${e.impact}`;
+      card.innerHTML=`
+        <div class="event-time">
+          <div>${e.time||'Tentative'}</div>
+          <div class="event-currency ${currencyClass(e.currency)}">${e.currency}</div>
+        </div>
+        <div>
+          <div class="event-name">${e.name}</div>
+          <div class="event-desc">${e.desc}</div>
+          <div class="event-pairs">${ap.map(p=>`<span class="event-pair-chip">${p}</span>`).join('')}</div>
+        </div>
+        <div><span class="impact-badge ${e.impact}">${e.impact==='high'?'🔴 HIGH':'🟡 MED'}</span></div>`;
+      g.appendChild(card);
+    });
+    container.appendChild(g);
+  });
+
+  if(!hasAny) container.innerHTML='<div class="empty">No events match this filter.</div>';
+}
+
+async function refreshMacro() {
+  // Clear cache so we force a fresh fetch
+  localStorage.removeItem(getMacroWeekKey());
+  MACRO_EVENTS = [];
+  macroLoadStatus = 'idle';
+  await fetchMacroEvents();
+}
+
+// ── PAIRS GRID ──
+function buildPairsGrid() {
+  const grid = document.getElementById('pairsGrid');
+  grid.innerHTML = '';
+  YOUR_PAIRS.forEach(pair=>{
+    const chip = document.createElement('div');
+    chip.id = 'chip-'+pair.replace('/','_');
+    chip.className = 'pair-chip'+(selectedPairs.includes(pair)?' active':'');
+    chip.textContent = pair;
+    chip.onclick = ()=>{
+      if(isScanning) return;
+      if(selectedPairs.includes(pair)){ selectedPairs=selectedPairs.filter(p=>p!==pair); chip.classList.remove('active'); }
+      else { selectedPairs.push(pair); chip.classList.add('active'); }
+      localStorage.setItem('selected_pairs_v2',JSON.stringify(selectedPairs));
+      updatePairCount();
+    };
+    grid.appendChild(chip);
+  });
+}
+function setChipState(pair, state) {
+  const chip = document.getElementById('chip-'+pair.replace('/','_'));
+  if(!chip) return;
+  chip.className = 'pair-chip '+state;
+  if(state==='scanning') chip.innerHTML=`<span class="spinning">⟳</span> ${pair}`;
+  else chip.textContent = pair;
+}
+function selectAll() { if(isScanning)return; selectedPairs=[...YOUR_PAIRS]; document.querySelectorAll('.pair-chip').forEach(c=>c.classList.add('active')); localStorage.setItem('selected_pairs_v2',JSON.stringify(selectedPairs)); updatePairCount(); }
+function selectNone() { if(isScanning)return; selectedPairs=[]; document.querySelectorAll('.pair-chip').forEach(c=>c.classList.remove('active')); localStorage.setItem('selected_pairs_v2',JSON.stringify(selectedPairs)); updatePairCount(); }
+function updatePairCount() { document.getElementById('pairCount').textContent=`${selectedPairs.length} of ${YOUR_PAIRS.length} pairs selected`; }
+function enableScanButtons() { document.getElementById('btnScanAll').disabled=false; document.getElementById('btnScanSelected').disabled=false; }
+
+// ── API ──
+async function testAPI() {
+  const key = document.getElementById('apiKey').value.trim();
+  if(!key) return;
+  const st = document.getElementById('apiStatus');
+  st.className='api-status'; st.textContent='Testing connection...';
+  try {
+    const r = await fetch(`https://api.twelvedata.com/time_series?symbol=EUR/USD&interval=1week&outputsize=3&apikey=${key}`);
+    const d = await r.json();
+    if(d.status==='error') throw new Error(d.message);
+    apiKey=key; localStorage.setItem('td_api_key',key);
+    st.className='api-status ok'; st.textContent='Connected — API key saved locally';
+    enableScanButtons();
+  } catch(e) { st.className='api-status err'; st.textContent='Connection failed: '+e.message; }
+}
+function clearAPI() { apiKey=''; document.getElementById('apiKey').value=''; document.getElementById('apiStatus').textContent=''; document.getElementById('btnScanAll').disabled=true; document.getElementById('btnScanSelected').disabled=true; localStorage.removeItem('td_api_key'); }
+
+// ── CANDLE FETCH ──
+async function fetchCandles(pair, interval, size) {
+  const r = await fetch(`https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(pair)}&interval=${interval}&outputsize=${size}&apikey=${apiKey}`);
+  const d = await r.json();
+  if(d.status==='error') throw new Error(d.message);
+  return (d.values||[]).reverse().map(v=>({
+    open:parseFloat(v.open), high:parseFloat(v.high),
+    low:parseFloat(v.low),   close:parseFloat(v.close)
+  }));
+}
+
+// ── TREND DETECTION (HH/HL or LH/LL structure) ──
+function detectTrend(candles) {
+  if(candles.length < 10) return 'neutral';
+  const pivots = [];
+  for(let i=2; i<candles.length-2; i++){
+    if(candles[i].high>candles[i-1].high && candles[i].high>candles[i-2].high &&
+       candles[i].high>candles[i+1].high && candles[i].high>candles[i+2].high)
+      pivots.push({type:'high', price:candles[i].high, idx:i});
+    if(candles[i].low<candles[i-1].low && candles[i].low<candles[i-2].low &&
+       candles[i].low<candles[i+1].low && candles[i].low<candles[i+2].low)
+      pivots.push({type:'low', price:candles[i].low, idx:i});
+  }
+  const highs = pivots.filter(p=>p.type==='high').slice(-4);
+  const lows  = pivots.filter(p=>p.type==='low').slice(-4);
+  let bull=0, bear=0;
+  for(let i=1;i<highs.length;i++) highs[i].price>highs[i-1].price ? bull++ : bear++;
+  for(let i=1;i<lows.length;i++)  lows[i].price >lows[i-1].price  ? bull++ : bear++;
+  return bull>bear ? 'bullish' : bear>bull ? 'bearish' : 'neutral';
+}
+
+// ── CORRECTED AOI DETECTION ──
+// A valid touch = market structure point (swing high/low) whose candle body
+// closes within OR touches the zone, then rejects back out.
+// Candles that close through the zone and continue in the same direction
+// without reversing are NOT counted as touches.
+function isValidTouch(candle, level, touchTol, trend) {
+  const bodyTop    = Math.max(candle.open, candle.close);
+  const bodyBottom = Math.min(candle.open, candle.close);
+
+  if(trend === 'bullish') {
+    // Support: candle low or body enters zone (within touchTol above level)
+    // AND candle closes above the level — i.e. it rejected back out upward
+    const entersZone = candle.low <= level + touchTol;
+    const rejectsOut = candle.close > level - touchTol * 0.3;
+    // Exclude candles that close well below the level (passed through)
+    const doesntPassThrough = bodyBottom >= level - touchTol;
+    return entersZone && rejectsOut && doesntPassThrough;
+  } else {
+    // Resistance: candle high or body enters zone (within touchTol below level)
+    // AND candle closes below the level — i.e. it rejected back out downward
+    const entersZone = candle.high >= level - touchTol;
+    const rejectsOut = candle.close < level + touchTol * 0.3;
+    // Exclude candles that close well above the level (passed through)
+    const doesntPassThrough = bodyTop <= level + touchTol;
+    return entersZone && rejectsOut && doesntPassThrough;
+  }
+}
+
+function detectAOIOnTimeframe(candles, trend, tfLabel) {
+  if(!candles || candles.length < 10) return [];
+
+  const pip      = candles[0]?.close < 10 ? 0.001 : 0.0001;
+  const maxZone  = 60 * pip;   // max 60 pip zone
+  const touchTol = 30 * pip;   // tolerance for grouping touches to same level
+  const minTouches = 3;
+
+  const currentPrice = candles[candles.length-1].close;
+
+  // Find the largest trend structure boundaries
+  // Bullish: highest HH and lowest HL in the dataset
+  // Bearish: lowest LL and highest LH in the dataset
+  // All AOIs within this range are shown (including beyond current price
+  // for break and retest setups)
+  const prices = candles.map(c => trend==='bullish' ? c.low : c.high);
+  const structureMax = Math.max(...candles.map(c => c.high));
+  const structureMin = Math.min(...candles.map(c => c.low));
+
+  // Build candidate levels from swing highs and lows
+  // For bullish: support levels = swing lows
+  // For bearish: resistance levels = swing highs
+  // We include BOTH for break and retest — a former support can become
+  // resistance after a break, and vice versa
+  const candidates = [];
+  for(let i=2; i<candles.length-2; i++){
+    // Swing lows (potential support/broken resistance)
+    if(candles[i].low < candles[i-1].low && candles[i].low < candles[i+1].low)
+      candidates.push({ level: candles[i].low, baseType: 'support' });
+    // Swing highs (potential resistance/broken support)
+    if(candles[i].high > candles[i-1].high && candles[i].high > candles[i+1].high)
+      candidates.push({ level: candles[i].high, baseType: 'resistance' });
+  }
+
+  const zones = [];
+
+  candidates.forEach(({ level, baseType }) => {
+    // Skip if already covered by an existing zone
+    if(zones.some(z => Math.abs(z.level - level) < touchTol)) return;
+
+    // Must be within the overall trend structure range
+    if(level < structureMin || level > structureMax) return;
+
+    // Count valid touches at this level
+    let touches = 0;
+    for(let j=0; j<candles.length; j++){
+      // For each candle, check if it touches and rejects at this level
+      // regardless of direction — the zone itself determines the type
+      const asSupport    = isValidTouch(candles[j], level, touchTol, 'bullish');
+      const asResistance = isValidTouch(candles[j], level, touchTol, 'bearish');
+      if(asSupport || asResistance) touches++;
+    }
+
+    if(touches < minTouches) return;
+
+    // Determine zone type based on position relative to current price
+    // and the overall trend:
+    // - Below current price in bullish = active support
+    // - Above current price in bullish = broken resistance (B&R target)
+    // - Above current price in bearish = active resistance
+    // - Below current price in bearish = broken support (B&R target)
+    let type;
+    if(trend === 'bullish') {
+      type = level < currentPrice ? 'support' : 'broken resistance (B&R)';
+    } else {
+      type = level > currentPrice ? 'resistance' : 'broken support (B&R)';
+    }
+
+    const distancePips = Math.abs(currentPrice - level) / pip;
+
+    zones.push({
+      level,
+      touches,
+      type,
+      pips: Math.round(maxZone / pip),
+      source: tfLabel,
+      distancePips: Math.round(distancePips)
+    });
+  });
+
+  // Sort: active zones (closer to price) first, B&R zones after
+  // Within each group, sort by proximity
+  return zones
+    .sort((a,b) => {
+      const aIsBR = a.type.includes('B&R');
+      const bIsBR = b.type.includes('B&R');
+      if(aIsBR !== bIsBR) return aIsBR ? 1 : -1;
+      return a.distancePips - b.distancePips;
+    })
+    .slice(0, 5);
+}
+
+// Combine Weekly + Daily zones: if a W zone and D zone are within 30 pips,
+// merge them into a single stronger "confluence" zone
+function combineZones(weeklyZones, dailyZones, pip) {
+  const combined = [];
+  const matchTol = 30 * pip;
+  const usedDaily = new Set();
+
+  weeklyZones.forEach(wz => {
+    const matchingDaily = dailyZones.find((dz, idx) =>
+      !usedDaily.has(idx) && Math.abs(dz.level - wz.level) < matchTol
+    );
+    if(matchingDaily) {
+      const dIdx = dailyZones.indexOf(matchingDaily);
+      usedDaily.add(dIdx);
+      // Use the average level, combined touches, mark as confluence
+      combined.push({
+        level:        (wz.level + matchingDaily.level) / 2,
+        touches:      wz.touches + matchingDaily.touches,
+        type:         wz.type,
+        pips:         wz.pips,
+        source:       'combined',
+        distancePips: Math.min(wz.distancePips, matchingDaily.distancePips)
+      });
+    } else {
+      combined.push(wz);
+    }
+  });
+
+  // Add remaining unmatched daily zones
+  dailyZones.forEach((dz, idx) => {
+    if(!usedDaily.has(idx)) combined.push(dz);
+  });
+
+  return combined
+    .sort((a,b) => {
+      // Confluence zones rank highest, then by proximity
+      const scoreA = (a.source==='combined'?0:1) + a.distancePips/10000;
+      const scoreB = (b.source==='combined'?0:1) + b.distancePips/10000;
+      return scoreA - scoreB;
+    })
+    .slice(0, 3);
+}
+
+// ── H&S DETECTION ──
+function detectHS(candles) {
+  if(candles.length < 20) return false;
+  const h = candles.slice(-20).map(c=>c.high);
+  const m = Math.floor(h.length/2);
+  const lp = Math.max(...h.slice(0,m-2));
+  const hd = Math.max(...h.slice(m-2,m+3));
+  const rp = Math.max(...h.slice(m+2));
+  return hd>lp*1.003 && hd>rp*1.003 && Math.abs(lp-rp)/lp<0.015;
+}
+
+// ── VERDICT ──
+function getVerdict(w,d,h,aois) {
+  if(w!=='neutral'&&w===d&&d===h&&aois.length>=1) return 'GO';
+  if((w===d||d===h)&&w!=='neutral'&&aois.length>=1) return 'WATCH';
+  return 'AVOID';
+}
+
+// ── ANALYSE ONE PAIR ──
+async function analysePair(pair) {
+  // Weekly: 104 candles ≈ 2 years
+  // Daily:  520 candles ≈ 2 years
+  // 4H:     120 candles ≈ 20 days (trend confirmation only)
+  const [weekly, daily, h4] = await Promise.all([
+    fetchCandles(pair, '1week', 104),
+    fetchCandles(pair, '1day',  520),
+    fetchCandles(pair, '4h',    120)
+  ]);
+
+  const wTrend = detectTrend(weekly);
+  const dTrend = detectTrend(daily);
+  const hTrend = detectTrend(h4);
+
+  // Overall direction: all 3 must agree for GO; majority for WATCH
+  const dir = (wTrend===dTrend) ? wTrend : (dTrend===hTrend ? dTrend : 'neutral');
+
+  const pip = daily[0]?.close < 10 ? 0.001 : 0.0001;
+
+  // Detect AOIs on each timeframe separately
+  const weeklyAOIs = detectAOIOnTimeframe(weekly, dir, 'weekly');
+  const dailyAOIs  = detectAOIOnTimeframe(daily,  dir, 'daily');
+
+  // Combine overlapping zones
+  const aois = combineZones(weeklyAOIs, dailyAOIs, pip);
+
+  const hasHS  = detectHS(daily);
+  const verdict = getVerdict(wTrend, dTrend, hTrend, aois);
+  const price   = daily[daily.length-1]?.close || 0;
+
+  return { pair, wTrend, dTrend, h4Trend:hTrend, direction:dir, aois, hasHS, verdict, currentPrice:price };
+}
+
+// ── SCAN ──
+const DELAY_BETWEEN_PAIRS = 32000; // 32s = safe within 8 credits/min
+
+async function startScan(mode) {
+  if(!apiKey) { alert('Please connect your API key in Settings first.'); return; }
+  if(isScanning) return;
+
+  scanQueue = mode==='all' ? [...YOUR_PAIRS] : [...selectedPairs];
+  if(!scanQueue.length) { alert('No pairs selected.'); return; }
+
+  isScanning = true;
+  scanDone = 0;
+  scanTotal = scanQueue.length;
+
+  const scanSet = new Set(scanQueue);
+  analysisResults = analysisResults.filter(r=>!scanSet.has(r.pair));
+
+  document.getElementById('btnScanAll').disabled = true;
+  document.getElementById('btnScanSelected').disabled = true;
+  document.getElementById('scanProgress').style.display = 'block';
+  document.getElementById('resultsSection').style.display = 'block';
+  document.getElementById('cacheBanner').style.display = 'none';
+  updateSummary();
+
+  for(const pair of scanQueue) {
+    setChipState(pair, 'scanning');
+    document.getElementById('progressText').textContent = `Scanning ${pair}...`;
+    document.getElementById('progressCount').textContent = `${scanDone+1} / ${scanTotal}`;
+    document.getElementById('progressBar').style.width = Math.round((scanDone/scanTotal)*100)+'%';
+
+    const remaining = scanTotal - scanDone;
+    const etaMin = Math.ceil((remaining * DELAY_BETWEEN_PAIRS) / 1000 / 60);
+    document.getElementById('progressEta').textContent = scanDone>0
+      ? `Estimated time remaining: ~${etaMin} min${etaMin!==1?'s':''}`
+      : `Estimated total time: ~${Math.ceil((scanTotal*DELAY_BETWEEN_PAIRS)/1000/60)} mins`;
+
+    try {
+      const result = await analysePair(pair);
+      analysisResults.push(result);
+      setChipState(pair, 'done');
+    } catch(e) {
+      analysisResults.push({pair, error:true, errorMsg:e.message, verdict:'AVOID'});
+      setChipState(pair, 'errored');
+    }
+
+    scanDone++;
+    saveResults();
+    renderAllResults();
+
+    if(scanDone < scanTotal) {
+      for(let s=Math.floor(DELAY_BETWEEN_PAIRS/1000); s>0; s--) {
+        document.getElementById('progressText').textContent = `⏳ Rate limit pause — next pair in ${s}s...`;
+        await new Promise(r=>setTimeout(r,1000));
+      }
+    }
+  }
+
+  isScanning = false;
+  document.getElementById('progressBar').style.width = '100%';
+  document.getElementById('progressText').textContent = `✓ Scan complete — ${scanTotal} pair${scanTotal!==1?'s':''} analysed`;
+  document.getElementById('progressCount').textContent = `${scanTotal} / ${scanTotal}`;
+  document.getElementById('progressEta').textContent = 'Results saved until end of Friday';
+  document.getElementById('btnScanAll').disabled = false;
+  document.getElementById('btnScanSelected').disabled = false;
+
+  const sa = new Date(), ex = getFridayEnd();
+  document.getElementById('cacheBanner').style.display = 'flex';
+  document.getElementById('cacheTime').textContent = `· scanned today at ${sa.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
+  document.getElementById('cacheExpiry').textContent = `Expires ${ex.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'})} at midnight`;
+}
+
+function clearResults() {
+  if(isScanning){ alert('Cannot clear results while scanning.'); return; }
+  if(!confirm('Clear all results for this week?')) return;
+  analysisResults=[];
+  localStorage.removeItem(getWeekKey());
+  document.getElementById('cacheBanner').style.display='none';
+  document.getElementById('summarySection').style.display='none';
+  document.getElementById('resultsSection').style.display='none';
+  document.getElementById('scanProgress').style.display='none';
+  document.getElementById('resultsContainer').innerHTML='';
+  buildPairsGrid();
+}
+
+// ── FILTER & RENDER ──
+function setFilter(f) {
+  currentFilter=f;
+  ['all','go','watch','bull','bear'].forEach(x=>{
+    document.getElementById('fb-'+x).className='filter-btn'+(x===f?' active':'');
+  });
+  renderAllResults(false);
+}
+
+function trendPill(tf,trend) {
+  const cls=trend==='bullish'?'tf-bull':trend==='bearish'?'tf-bear':'tf-neutral';
+  return `<span class="tf-pill ${cls}">${tf} ${trend==='bullish'?'▲':trend==='bearish'?'▼':'—'}</span>`;
+}
+
+function aoiSourceBadge(source) {
+  if(source==='combined') return '<span class="aoi-source aoi-combined">W+D confluence</span>';
+  if(source==='weekly')   return '<span class="aoi-source aoi-weekly">Weekly</span>';
+  return '<span class="aoi-source aoi-daily">Daily</span>';
+}
+
+function updateSummary() {
+  const ok = analysisResults.filter(r=>!r.error);
+  document.getElementById('sumScanned').textContent = analysisResults.length;
+  document.getElementById('sumBull').textContent = ok.filter(r=>r.direction==='bullish').length;
+  document.getElementById('sumBear').textContent = ok.filter(r=>r.direction==='bearish').length;
+  document.getElementById('sumTop').textContent  = ok.filter(r=>r.verdict==='GO').length;
+  document.getElementById('summarySection').style.display = analysisResults.length>0 ? 'block' : 'none';
+}
+
+function renderAllResults(doSummary=true) {
+  if(doSummary) updateSummary();
+  document.getElementById('resultsSection').style.display='block';
+
+  let sorted = [...analysisResults].sort((a,b)=>
+    ({'GO':0,'WATCH':1,'AVOID':2}[a.verdict]-{'GO':0,'WATCH':1,'AVOID':2}[b.verdict])
+  );
+
+  let filtered = sorted;
+  if(currentFilter==='go')    filtered=sorted.filter(r=>r.verdict==='GO');
+  else if(currentFilter==='watch') filtered=sorted.filter(r=>r.verdict==='WATCH');
+  else if(currentFilter==='bull')  filtered=sorted.filter(r=>r.direction==='bullish'&&!r.error);
+  else if(currentFilter==='bear')  filtered=sorted.filter(r=>r.direction==='bearish'&&!r.error);
+
+  const scannedSet = new Set(analysisResults.map(r=>r.pair));
+  const pending = isScanning ? scanQueue.filter(p=>!scannedSet.has(p)) : [];
+
+  const c = document.getElementById('resultsContainer');
+  c.innerHTML='';
+
+  if(filtered.length===0&&pending.length===0){
+    c.innerHTML='<div class="empty">No pairs match this filter.</div>'; return;
+  }
+
+  filtered.forEach(r=>{
+    const el=document.createElement('div');
+    if(r.error){
+      el.className='pair-card avoid-card';
+      el.innerHTML=`<div class="card-header"><div class="card-left"><span class="pair-name">${r.pair}</span></div><span style="font-family:var(--font-mono);font-size:11px;color:var(--bear)">Data error</span></div><div style="padding:0 1.25rem 1rem;font-family:var(--font-mono);font-size:11px;color:var(--muted)">${r.errorMsg||'Could not fetch data'}</div>`;
+      c.appendChild(el); return;
+    }
+
+    const dirClass = r.verdict==='GO'?'bull-card':r.verdict==='WATCH'?'watch-card':r.direction==='bearish'?'bear-card':'avoid-card';
+    const dirBadge = r.direction==='bullish'?'<span class="direction-badge bull-badge">▲ BULLISH</span>':r.direction==='bearish'?'<span class="direction-badge bear-badge">▼ BEARISH</span>':'<span class="direction-badge mixed-badge">— MIXED</span>';
+    const vc = r.verdict==='GO'?'var(--bull)':r.verdict==='WATCH'?'var(--warn)':'var(--muted)';
+    const vi = r.verdict==='GO'?'✦ GO':r.verdict==='WATCH'?'◎ WATCH':'✕ AVOID';
+    const aligned = r.wTrend===r.dTrend&&r.dTrend===r.h4Trend&&r.wTrend!=='neutral';
+    const dec = r.currentPrice<10?3:5;
+
+    const hasConfluence = r.aois && r.aois.some(a=>a.source==='combined');
+
+    const aoisHtml = r.aois && r.aois.length>0
+      ? r.aois.map(a=>{
+          const isBR = a.type.includes('B&R');
+          const typeColor = isBR ? 'color:var(--warn)' : (a.type==='support'?'color:var(--bull)':'color:var(--bear)');
+          return `<div class="aoi-box">
+            <div class="aoi-level">${a.level.toFixed(dec)} ${aoiSourceBadge(a.source)}</div>
+            <div class="aoi-detail" style="${typeColor}">${a.type}</div>
+            <div class="aoi-detail">${a.touches} touches · ~${a.distancePips} pips away</div>
+          </div>`;
+        }).join('')
+      : `<div style="font-size:12px;color:var(--muted);font-family:var(--font-mono)">No valid AOI detected — verify manually on TradingView</div>`;
+
+    const note = r.verdict==='GO'
+      ? `<span style="color:var(--bull)">Priority pair this week.</span> All 3 TFs aligned${hasConfluence?' with W+D confluence AOI':' with valid AOI'}. Watch for engulfing rejection at AOI during London session (08:00–17:30 GMT). Entry on 2H or 1H only. Set and forget.`
+      : r.verdict==='WATCH'
+      ? `<span style="color:var(--warn)">Monitor this pair.</span> Partial TF alignment. Confirm structure on TradingView before considering entry. Only trade if all boxes check out by Mon/Tue.`
+      : `<span style="color:var(--muted)">Skip this week.</span> TFs not aligned or no valid AOI found within trend structure. Do not force a setup.`;
+
+    el.className=`pair-card ${dirClass}`;
+    el.innerHTML=`
+      <div class="card-header">
+        <div class="card-left">
+          <span class="pair-name">${r.pair}</span>
+          ${dirBadge}
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">${r.currentPrice.toFixed(dec)}</span>
+        </div>
+        <span style="font-family:var(--font-mono);font-weight:700;font-size:14px;color:${vc}">${vi}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-section">
+          <div class="cs-label">Trend alignment</div>
+          <div class="tf-row">${trendPill('W',r.wTrend)}${trendPill('D',r.dTrend)}${trendPill('4H',r.h4Trend)}</div>
+          <div class="checklist">
+            <div class="check-item ${aligned?'pass':'warn'}">
+              <span style="width:14px;display:inline-block">${aligned?'✓':'△'}</span>
+              ${aligned?'All 3 TFs aligned':'TFs not fully aligned'}
+            </div>
+            <div class="check-item ${r.aois&&r.aois.length>0?'pass':'fail'}">
+              <span style="width:14px;display:inline-block">${r.aois&&r.aois.length>0?'✓':'✕'}</span>
+              ${r.aois&&r.aois.length>0?(hasConfluence?'W+D confluence AOI found':r.aois.length+' AOI zone'+(r.aois.length>1?'s':'')+' found'):'No valid AOI found'}
+            </div>
+            <div class="check-item ${r.hasHS?'pass':'warn'}">
+              <span style="width:14px;display:inline-block">${r.hasHS?'✓':'—'}</span>
+              ${r.hasHS?'H&S pattern detected':'No H&S pattern'}
+            </div>
+          </div>
+        </div>
+        <div class="card-section">
+          <div class="cs-label">Areas of interest</div>
+          ${aoisHtml}
+        </div>
+        <div class="card-section">
+          <div class="cs-label">This week's notes</div>
+          <div style="font-size:12px;line-height:1.7;color:var(--muted)">${note}</div>
+        </div>
+      </div>`;
+    c.appendChild(el);
+  });
+
+  if(currentFilter==='all'&&pending.length>0) {
+    pending.forEach(pair=>{
+      const el=document.createElement('div'); el.className='pair-card pending-card';
+      el.innerHTML=`<div class="card-header"><div class="card-left"><span class="pair-name">${pair}</span><span style="font-family:var(--font-mono);font-size:11px;color:var(--accent)"><span class="spinning">⟳</span> Queued...</span></div></div>`;
+      c.appendChild(el);
+    });
+  }
+}
+
+init();
+</script>
+</body>
+</html>
