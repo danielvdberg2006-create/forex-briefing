@@ -417,34 +417,74 @@ function parseTimeFromDate(dateStr) {
 function parseFForexFactoryRSS(xmlText) {
   const parser = new DOMParser();
   const xml = parser.parseFromString(xmlText, 'text/xml');
-  const items = xml.querySelectorAll('item');
+
+  // faireconomy.media uses <event> tags; FF RSS uses <item> tags
+  let items = Array.from(xml.querySelectorAll('event'));
+  if(items.length === 0) items = Array.from(xml.querySelectorAll('item'));
+
   const events = [];
 
   items.forEach(item => {
-    const title    = item.querySelector('title')?.textContent?.trim() || '';
-    const pubDate  = item.querySelector('pubDate')?.textContent?.trim() || '';
-    const desc     = item.querySelector('description')?.textContent?.trim() || '';
+    // faireconomy format fields
+    const title    = (item.querySelector('title')?.textContent || '').trim();
+    const country  = (item.querySelector('country')?.textContent || '').trim().toUpperCase();
+    const date     = (item.querySelector('date')?.textContent || item.querySelector('pubDate')?.textContent || '').trim();
+    const time     = (item.querySelector('time')?.textContent || '').trim();
+    const impact   = (item.querySelector('impact')?.textContent || '').trim().toLowerCase();
+    const forecast = (item.querySelector('forecast')?.textContent || '').trim();
+    const previous = (item.querySelector('previous')?.textContent || '').trim();
 
-    const impact   = parseImpact(title);
-    if(!impact) return; // skip low-impact events
+    // Map faireconomy impact levels
+    let impactLevel;
+    if(impact === 'high' || impact === '3') impactLevel = 'high';
+    else if(impact === 'medium' || impact === 'moderate' || impact === '2') impactLevel = 'med';
+    else {
+      // Fallback: detect from title keywords
+      impactLevel = parseImpact(title);
+    }
+    if(!impactLevel) return; // skip low impact
 
-    const currency = parseCurrency(title);
-    if(!currency) return; // skip if no recognisable currency
+    // Map country to currency
+    const COUNTRY_CURRENCY = {
+      'US':'USD','USD':'USD','UNITED STATES':'USD',
+      'GB':'GBP','UK':'GBP','GBP':'GBP','UNITED KINGDOM':'GBP',
+      'EU':'EUR','EMU':'EUR','EUR':'EUR','EURO ZONE':'EUR','EUROZONE':'EUR','EUROPEAN UNION':'EUR',
+      'AU':'AUD','AUD':'AUD','AUSTRALIA':'AUD',
+      'CA':'CAD','CAD':'CAD','CANADA':'CAD',
+      'NZ':'NZD','NZD':'NZD','NEW ZEALAND':'NZD',
+      'JP':'JPY','JPY':'JPY','JAPAN':'JPY',
+      'CH':'CHF','CHF':'CHF','SWITZERLAND':'CHF',
+    };
+    const currency = COUNTRY_CURRENCY[country] || parseCurrency(title);
+    if(!currency || !CURRENCY_PAIRS_MAP[currency]) return;
 
-    const pairs = CURRENCY_PAIRS_MAP[currency] || [];
-    if(!pairs.length) return; // skip currencies not in your pairs
+    const pairs = CURRENCY_PAIRS_MAP[currency];
 
-    const day  = parseDayFromDate(pubDate);
-    if(!day || day === 'SAT' || day === 'SUN' || day === 'FRI') return; // Mon–Thu only
+    // Parse day of week from date field
+    const d = new Date(date);
+    const day = isNaN(d) ? parseDayFromDate(date) : ['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()];
+    if(!day || day==='SAT'||day==='SUN'||day==='FRI') return;
 
-    const time = parseTimeFromDate(pubDate);
+    // Format time
+    let displayTime = 'Tentative';
+    if(time && time !== '00:00' && time !== '') {
+      displayTime = time.includes('GMT') ? time : `${time} GMT`;
+    } else if(date) {
+      displayTime = parseTimeFromDate(date);
+    }
 
-    // Clean up description — strip HTML tags
-    const cleanDesc = desc.replace(/<[^>]+>/g, '').trim() ||
-      `${currency} event — check forexfactory.com for full details.`;
+    // Build description
+    let desc = `${currency} event`;
+    if(forecast) desc += ` · Forecast: ${forecast}`;
+    if(previous) desc += ` · Previous: ${previous}`;
+    desc += '. Check forexfactory.com for full analysis.';
 
-    events.push({ day, time, name: title, impact, currency, desc: cleanDesc, pairs });
+    events.push({ day, time: displayTime, name: title, impact: impactLevel, currency, desc, pairs });
   });
+
+  // Sort by day order
+  const dayOrder = {MON:0,TUE:1,WED:2,THU:3};
+  events.sort((a,b) => (dayOrder[a.day]||0) - (dayOrder[b.day]||0));
 
   return events;
 }
@@ -454,20 +494,22 @@ async function fetchMacroEvents() {
   macroLoadStatus = 'loading';
   updateMacroStatus('loading');
 
-  // Try Forex Factory RSS via a CORS proxy
-  // We try two proxies in case one is blocked
-  const FF_URL = 'https://www.forexfactory.com/ff_calendar_thisweek.xml';
+  // Forex Factory's actual data source (not the blocked forexfactory.com URL)
+  const FF_URL = 'https://nfs.faireconomy.media/ff_calendar_thisweek.xml';
+
   const PROXIES = [
     `https://api.allorigins.win/raw?url=${encodeURIComponent(FF_URL)}`,
     `https://corsproxy.io/?${encodeURIComponent(FF_URL)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(FF_URL)}`,
+    `https://thingproxy.freeboard.io/fetch/${FF_URL}`,
   ];
 
   for(const proxy of PROXIES) {
     try {
-      const r = await fetch(proxy, { signal: AbortSignal.timeout(8000) });
+      const r = await fetch(proxy, { signal: AbortSignal.timeout(10000) });
       if(!r.ok) continue;
       const text = await r.text();
-      if(!text.includes('<item>')) continue; // not valid RSS
+      if(!text.includes('<event>') && !text.includes('<item>') && !text.includes('<title>')) continue;
 
       const events = parseFForexFactoryRSS(text);
       if(events.length === 0) continue;
@@ -479,7 +521,7 @@ async function fetchMacroEvents() {
       renderMacroEvents();
       return;
     } catch(e) {
-      continue; // try next proxy
+      continue;
     }
   }
 
@@ -493,7 +535,7 @@ async function fetchMacroEvents() {
     return;
   }
 
-  // Complete failure — show error state
+  // Complete failure
   macroLoadStatus = 'failed';
   updateMacroStatus('failed');
   renderMacroEvents();
