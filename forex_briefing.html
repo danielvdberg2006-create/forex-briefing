@@ -354,16 +354,12 @@ let macroLoadStatus = 'idle'; // idle | loading | loaded | failed
 
 // ── MACRO CACHE ──
 function getMacroWeekKey() {
-  const d = new Date();
-  const mon = new Date(d);
-  mon.setDate(d.getDate() - d.getDay() + 1);
+  const mon = getUpcomingWeekMonday();
   return `forex_macro_${mon.getFullYear()}_${mon.getMonth()}_${mon.getDate()}`;
 }
 
 function saveMacroCache(events) {
-  const fri = new Date();
-  fri.setDate(fri.getDate() - fri.getDay() + 5);
-  fri.setHours(23,59,59,999);
+  const fri = getFridayEnd();
   localStorage.setItem(getMacroWeekKey(), JSON.stringify({
     events, savedAt: Date.now(), expiresAt: fri.getTime()
   }));
@@ -575,17 +571,42 @@ let scanQueue = [];
 let scanDone = 0;
 let scanTotal = 0;
 
+// ── WEEK DATE HELPERS ──
+// When opened on Saturday or Sunday, show the UPCOMING week (Mon–Fri)
+// When opened Mon–Fri, show the CURRENT week
+function getUpcomingWeekMonday() {
+  const d = new Date();
+  const day = d.getDay(); // 0=Sun, 1=Mon ... 6=Sat
+  let daysUntilMon;
+  if(day === 0) daysUntilMon = 1;       // Sunday → next Monday
+  else if(day === 6) daysUntilMon = 2;  // Saturday → Monday after
+  else daysUntilMon = -(day - 1);       // Mon–Fri → this week's Monday
+  const mon = new Date(d);
+  mon.setDate(d.getDate() + daysUntilMon);
+  mon.setHours(0,0,0,0);
+  return mon;
+}
+
+function getWeekDates() {
+  const mon = getUpcomingWeekMonday();
+  const dates = {};
+  ['MON','TUE','WED','THU','FRI'].forEach((day, i) => {
+    const d = new Date(mon);
+    d.setDate(mon.getDate() + i);
+    dates[day] = d;
+  });
+  return dates;
+}
+
 // ── CACHE ──
 function getWeekKey() {
-  const d = new Date();
-  const mon = new Date(d);
-  mon.setDate(d.getDate() - d.getDay() + 1);
+  const mon = getUpcomingWeekMonday();
   return `forex_results_${mon.getFullYear()}_${mon.getMonth()}_${mon.getDate()}`;
 }
 function getFridayEnd() {
-  const d = new Date();
-  const fri = new Date(d);
-  fri.setDate(d.getDate() - d.getDay() + 5);
+  const mon = getUpcomingWeekMonday();
+  const fri = new Date(mon);
+  fri.setDate(mon.getDate() + 4);
   fri.setHours(23,59,59,999);
   return fri;
 }
@@ -612,12 +633,13 @@ function init() {
   clearOldCaches();
   clearOldMacroCaches();
 
-  const d = new Date();
-  const mon = new Date(d); mon.setDate(d.getDate()-d.getDay()+1);
-  const fri = new Date(mon); fri.setDate(mon.getDate()+4);
-  const fmt = x => x.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-  document.getElementById('navWeek').textContent = `${fmt(mon)} – ${fmt(fri)}`;
-  document.getElementById('macroSubtitle').textContent = `Week of ${fmt(mon)} · ${YOUR_PAIRS.length} pairs tracked`;
+  const mon = getUpcomingWeekMonday();
+  const fri = new Date(mon); fri.setDate(mon.getDate() + 4);
+  const fmt      = x => x.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  const fmtShort = x => x.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  const weekStr  = `${fmtShort(mon)} – ${fmt(fri)}`;
+  document.getElementById('navWeek').textContent = weekStr;
+  document.getElementById('macroSubtitle').textContent = `Week of ${weekStr} · ${YOUR_PAIRS.length} pairs tracked`;
 
   const saved = localStorage.getItem('td_api_key');
   if(saved) { apiKey=saved; document.getElementById('apiKey').value=saved; document.getElementById('apiStatus').className='api-status ok'; document.getElementById('apiStatus').textContent='API key loaded'; enableScanButtons(); }
@@ -636,9 +658,8 @@ function init() {
     updateMacroStatus('loaded', cachedMacro.length);
     renderMacroEvents();
   } else {
-    // No cache — fetch live from Forex Factory
     macroLoadStatus = 'loading';
-    renderMacroEvents(); // shows spinner
+    renderMacroEvents();
     fetchMacroEvents();
   }
 
@@ -706,9 +727,12 @@ function renderMacroEvents() {
   document.getElementById('medCount').textContent  = MACRO_EVENTS.filter(e=>e.impact==='med').length;
   document.getElementById('eventDays').textContent = [...new Set(MACRO_EVENTS.map(e=>e.day))].length;
 
-  // Group by day
+  // Group by day and show actual dates
   const grouped = {MON:[],TUE:[],WED:[],THU:[]};
   events.forEach(e=>{ if(grouped[e.day]) grouped[e.day].push(e); });
+
+  // Get actual calendar dates for each day this week
+  const weekDates = getWeekDates();
 
   container.innerHTML = '';
 
@@ -716,8 +740,15 @@ function renderMacroEvents() {
   Object.entries(grouped).forEach(([day,evs])=>{
     if(!evs.length) return;
     hasAny = true;
+    const dateStr = weekDates[day]
+      ? weekDates[day].toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})
+      : '';
     const g = document.createElement('div'); g.className='day-group';
-    g.innerHTML = `<div class="day-label"><div class="day-name">${DAY_NAMES[day]}</div><div class="day-line"></div><div class="day-count">${evs.length} event${evs.length>1?'s':''}</div></div>`;
+    g.innerHTML = `<div class="day-label">
+      <div class="day-name">${DAY_NAMES[day]}<span style="font-weight:400;color:var(--muted);margin-left:8px;font-size:12px">${dateStr}</span></div>
+      <div class="day-line"></div>
+      <div class="day-count">${evs.length} event${evs.length>1?'s':''}</div>
+    </div>`;
     evs.forEach(e=>{
       const ap = (e.pairs||[]).filter(p=>YOUR_PAIRS.includes(p));
       const card = document.createElement('div'); card.className=`event-card ${e.impact}`;
