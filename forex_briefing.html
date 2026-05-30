@@ -838,24 +838,115 @@ async function fetchCandles(pair, interval, size) {
   }));
 }
 
-// ── TREND DETECTION (HH/HL or LH/LL structure) ──
-function detectTrend(candles) {
-  if(candles.length < 10) return 'neutral';
-  const pivots = [];
-  for(let i=2; i<candles.length-2; i++){
-    if(candles[i].high>candles[i-1].high && candles[i].high>candles[i-2].high &&
-       candles[i].high>candles[i+1].high && candles[i].high>candles[i+2].high)
-      pivots.push({type:'high', price:candles[i].high, idx:i});
-    if(candles[i].low<candles[i-1].low && candles[i].low<candles[i-2].low &&
-       candles[i].low<candles[i+1].low && candles[i].low<candles[i+2].low)
-      pivots.push({type:'low', price:candles[i].low, idx:i});
+// ── TREND DETECTION — Exact market structure tracking ──
+//
+// Rules:
+// BULLISH:
+//   - Watch current HH
+//   - Candle closes ABOVE current HH → new HH confirmed
+//   - The lowest low between the old HH and the new HH = new HL
+//   - HL is only ever updated when a new HH is confirmed — never speculatively
+//
+// BEARISH:
+//   - Watch current LL
+//   - Candle closes BELOW current LL → new LL confirmed
+//   - The highest high between the old LL and the new LL = new LH
+//   - LH is only ever updated when a new LL is confirmed — never speculatively
+//
+// CHANGE OF CHARACTER (CHoCH):
+//   - Bearish → Bullish: close ABOVE current LH
+//     → new HH = that candle's close level
+//     → new HL = lowest low between old LH and the break candle
+//   - Bullish → Bearish: close BELOW current HL
+//     → new LL = that candle's close level
+//     → new LH = highest high between old HL and the break candle
+//
+// Trend state only changes on confirmed CLOSES — wicks never trigger a change
+
+function detectTrendStructure(candles) {
+  if(!candles || candles.length < 5) return { trend:'neutral', keyHigh:null, keyLow:null };
+
+  // ── Seed the initial state from the first 10 candles ──
+  const seedCandles = candles.slice(0, 10);
+  let keyHigh = Math.max(...seedCandles.map(c => c.high)); // current HH (bullish) or LH (bearish)
+  let keyLow  = Math.min(...seedCandles.map(c => c.low));  // current HL (bullish) or LL (bearish)
+
+  // Seed trend direction from where price closes relative to midpoint
+  const midpoint = (keyHigh + keyLow) / 2;
+  let trend = candles[9].close >= midpoint ? 'bullish' : 'bearish';
+
+  // Track the index where the current key level was last set
+  // so we can find the lowest low / highest high between structure points
+  let keyHighIdx = 0;
+  let keyLowIdx  = 0;
+
+  // ── Walk every candle from index 10 onward ──
+  for(let i = 10; i < candles.length; i++) {
+    const close = candles[i].close;
+    const high  = candles[i].high;
+    const low   = candles[i].low;
+
+    if(trend === 'bullish') {
+      // ── Bearish CHoCH: close BELOW current HL ──
+      if(close < keyLow) {
+        // New LL = this candle's low
+        // New LH = highest high between keyLowIdx and now
+        const newLH = Math.max(...candles.slice(keyLowIdx, i+1).map(c => c.high));
+        trend      = 'bearish';
+        keyLow     = low;
+        keyHigh    = newLH;
+        keyLowIdx  = i;
+        keyHighIdx = i;
+
+      } else if(close > keyHigh) {
+        // ── New HH confirmed: close ABOVE current HH ──
+        // New HL = lowest low between keyHighIdx and now
+        const newHL = Math.min(...candles.slice(keyHighIdx, i+1).map(c => c.low));
+        keyHigh    = high;
+        keyLow     = newHL;
+        keyHighIdx = i;
+        keyLowIdx  = i;
+        // trend stays bullish
+      }
+      // else: between HL and HH — no change
+
+    } else if(trend === 'bearish') {
+      // ── Bullish CHoCH: close ABOVE current LH ──
+      if(close > keyHigh) {
+        // New HH = this candle's high
+        // New HL = lowest low between keyHighIdx and now
+        const newHL = Math.min(...candles.slice(keyHighIdx, i+1).map(c => c.low));
+        trend      = 'bullish';
+        keyHigh    = high;
+        keyLow     = newHL;
+        keyHighIdx = i;
+        keyLowIdx  = i;
+
+      } else if(close < keyLow) {
+        // ── New LL confirmed: close BELOW current LL ──
+        // New LH = highest high between keyLowIdx and now
+        const newLH = Math.max(...candles.slice(keyLowIdx, i+1).map(c => c.high));
+        keyLow     = low;
+        keyHigh    = newLH;
+        keyLowIdx  = i;
+        keyHighIdx = i;
+        // trend stays bearish
+      }
+      // else: between LH and LL — no change
+
+    } else {
+      // Neutral seed — establish from first confirmed break
+      if(close > keyHigh) { trend = 'bullish'; keyHigh = high; keyHighIdx = i; }
+      else if(close < keyLow) { trend = 'bearish'; keyLow = low; keyLowIdx = i; }
+    }
   }
-  const highs = pivots.filter(p=>p.type==='high').slice(-4);
-  const lows  = pivots.filter(p=>p.type==='low').slice(-4);
-  let bull=0, bear=0;
-  for(let i=1;i<highs.length;i++) highs[i].price>highs[i-1].price ? bull++ : bear++;
-  for(let i=1;i<lows.length;i++)  lows[i].price >lows[i-1].price  ? bull++ : bear++;
-  return bull>bear ? 'bullish' : bear>bull ? 'bearish' : 'neutral';
+
+  return { trend, keyHigh, keyLow };
+}
+
+// Convenience wrapper — returns just the trend string
+function detectTrend(candles) {
+  return detectTrendStructure(candles).trend;
 }
 
 // ── CORRECTED AOI DETECTION ──
@@ -886,24 +977,20 @@ function isValidTouch(candle, level, touchTol, trend) {
   }
 }
 
-function detectAOIOnTimeframe(candles, trend, tfLabel) {
+function detectAOIOnTimeframe(candles, trend, tfLabel, keyHigh, keyLow) {
   if(!candles || candles.length < 10) return [];
 
   const pip      = candles[0]?.close < 10 ? 0.001 : 0.0001;
-  const maxZone  = 60 * pip;   // max 60 pip zone
-  const touchTol = 30 * pip;   // tolerance for grouping touches to same level
+  const maxZone  = 60 * pip;
+  const touchTol = 30 * pip;
   const minTouches = 3;
 
   const currentPrice = candles[candles.length-1].close;
 
-  // Find the largest trend structure boundaries
-  // Bullish: highest HH and lowest HL in the dataset
-  // Bearish: lowest LL and highest LH in the dataset
-  // All AOIs within this range are shown (including beyond current price
-  // for break and retest setups)
-  const prices = candles.map(c => trend==='bullish' ? c.low : c.high);
-  const structureMax = Math.max(...candles.map(c => c.high));
-  const structureMin = Math.min(...candles.map(c => c.low));
+  // Use confirmed structural boundaries from detectTrendStructure
+  // All zones within these boundaries are valid (including B&R levels)
+  const structureMax = keyHigh || Math.max(...candles.map(c => c.high));
+  const structureMin = keyLow  || Math.min(...candles.map(c => c.low));
 
   // Build candidate levels from swing highs and lows
   // For bullish: support levels = swing lows
@@ -1050,27 +1137,42 @@ async function analysePair(pair) {
     fetchCandles(pair, '4h',    120)
   ]);
 
-  const wTrend = detectTrend(weekly);
-  const dTrend = detectTrend(daily);
-  const hTrend = detectTrend(h4);
+  // Use full structure tracking — returns trend + key structural levels
+  const wStruct = detectTrendStructure(weekly);
+  const dStruct = detectTrendStructure(daily);
+  const hStruct = detectTrendStructure(h4);
 
-  // Overall direction: all 3 must agree for GO; majority for WATCH
-  const dir = (wTrend===dTrend) ? wTrend : (dTrend===hTrend ? dTrend : 'neutral');
+  const wTrend = wStruct.trend;
+  const dTrend = dStruct.trend;
+  const hTrend = hStruct.trend;
+
+  // Overall direction: all 3 must agree for GO; 2 of 3 for WATCH
+  const dir = (wTrend===dTrend && dTrend===hTrend && wTrend!=='neutral')
+    ? wTrend
+    : (wTrend===dTrend && wTrend!=='neutral') ? wTrend
+    : (dTrend===hTrend && dTrend!=='neutral') ? dTrend
+    : 'neutral';
 
   const pip = daily[0]?.close < 10 ? 0.001 : 0.0001;
 
-  // Detect AOIs on each timeframe separately
-  const weeklyAOIs = detectAOIOnTimeframe(weekly, dir, 'weekly');
-  const dailyAOIs  = detectAOIOnTimeframe(daily,  dir, 'daily');
+  // Pass the structural key levels to AOI detection so zones are
+  // anchored within the confirmed structure, not just price range
+  const weeklyAOIs = detectAOIOnTimeframe(weekly, wTrend, 'weekly', wStruct.keyHigh, wStruct.keyLow);
+  const dailyAOIs  = detectAOIOnTimeframe(daily,  dTrend, 'daily',  dStruct.keyHigh, dStruct.keyLow);
 
   // Combine overlapping zones
   const aois = combineZones(weeklyAOIs, dailyAOIs, pip);
 
-  const hasHS  = detectHS(daily);
+  const hasHS   = detectHS(daily);
   const verdict = getVerdict(wTrend, dTrend, hTrend, aois);
   const price   = daily[daily.length-1]?.close || 0;
 
-  return { pair, wTrend, dTrend, h4Trend:hTrend, direction:dir, aois, hasHS, verdict, currentPrice:price };
+  return {
+    pair, wTrend, dTrend, h4Trend:hTrend, direction:dir,
+    aois, hasHS, verdict, currentPrice:price,
+    wKeyHigh: wStruct.keyHigh, wKeyLow: wStruct.keyLow,
+    dKeyHigh: dStruct.keyHigh, dKeyLow: dStruct.keyLow
+  };
 }
 
 // ── SCAN ──
@@ -1246,6 +1348,22 @@ function renderAllResults(doSummary=true) {
       : `<span style="color:var(--muted)">Skip this week.</span> TFs not aligned or no valid AOI found within trend structure. Do not force a setup.`;
 
     el.className=`pair-card ${dirClass}`;
+
+    // Show the key structural levels the algorithm is tracking
+    const dHigh = r.dKeyHigh ? r.dKeyHigh.toFixed(dec) : '—';
+    const dLow  = r.dKeyLow  ? r.dKeyLow.toFixed(dec)  : '—';
+    const structLabel = r.direction==='bullish'
+      ? `<div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:8px;line-height:1.7">
+           Key HH: <span style="color:var(--bull)">${dHigh}</span><br>
+           Key HL: <span style="color:var(--bull)">${dLow}</span>
+         </div>`
+      : r.direction==='bearish'
+      ? `<div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:8px;line-height:1.7">
+           Key LH: <span style="color:var(--bear)">${dHigh}</span><br>
+           Key LL: <span style="color:var(--bear)">${dLow}</span>
+         </div>`
+      : '';
+
     el.innerHTML=`
       <div class="card-header">
         <div class="card-left">
@@ -1273,6 +1391,7 @@ function renderAllResults(doSummary=true) {
               ${r.hasHS?'H&S pattern detected':'No H&S pattern'}
             </div>
           </div>
+          ${structLabel}
         </div>
         <div class="card-section">
           <div class="cs-label">Areas of interest</div>
