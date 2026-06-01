@@ -840,111 +840,136 @@ async function fetchCandles(pair, interval, size) {
 
 // ── TREND DETECTION — Exact market structure tracking ──
 //
-// Rules:
-// BULLISH:
-//   - Watch current HH
-//   - Candle closes ABOVE current HH → new HH confirmed
-//   - The lowest low between the old HH and the new HH = new HL
-//   - HL is only ever updated when a new HH is confirmed — never speculatively
-//
-// BEARISH:
-//   - Watch current LL
-//   - Candle closes BELOW current LL → new LL confirmed
-//   - The highest high between the old LL and the new LL = new LH
-//   - LH is only ever updated when a new LL is confirmed — never speculatively
-//
-// CHANGE OF CHARACTER (CHoCH):
-//   - Bearish → Bullish: close ABOVE current LH
-//     → new HH = that candle's close level
-//     → new HL = lowest low between old LH and the break candle
-//   - Bullish → Bearish: close BELOW current HL
-//     → new LL = that candle's close level
-//     → new LH = highest high between old HL and the break candle
-//
-// Trend state only changes on confirmed CLOSES — wicks never trigger a change
+// Bullish continuation : close ABOVE current HH → new HH confirmed
+//                        lowest low between old HH idx and new HH idx = new HL
+// Bearish continuation : close BELOW current LL → new LL confirmed
+//                        highest high between old LL idx and new LL idx = new LH
+// CHoCH bear→bull      : close ABOVE current LH → trend flips bullish
+//                        break candle high = new HH
+//                        lowest low between old LH idx and break idx = new HL
+// CHoCH bull→bear      : close BELOW current HL → trend flips bearish
+//                        break candle low = new LL
+//                        highest high between old HL idx and break idx = new LH
+// Between structure pts : absolutely nothing changes
+// Only CLOSES trigger changes — never wicks
 
 function detectTrendStructure(candles) {
-  if(!candles || candles.length < 5) return { trend:'neutral', keyHigh:null, keyLow:null };
+  if(!candles || candles.length < 10) return { trend:'neutral', keyHigh:null, keyLow:null };
 
-  // ── Seed the initial state from the first 10 candles ──
-  const seedCandles = candles.slice(0, 10);
-  let keyHigh = Math.max(...seedCandles.map(c => c.high)); // current HH (bullish) or LH (bearish)
-  let keyLow  = Math.min(...seedCandles.map(c => c.low));  // current HL (bullish) or LL (bearish)
+  // ── Step 1: Find the most recent significant swing points ──
+  // Rather than seeding from the absolute extremes of the full dataset
+  // (which can be years old and cause the forward walk to lose track),
+  // we find the most recent swing high and swing low within the last
+  // 20% of candles to establish a recent anchor point, then walk forward.
+  //
+  // A swing high = candle whose high is higher than the 3 candles either side
+  // A swing low  = candle whose low  is lower  than the 3 candles either side
 
-  // Seed trend direction from where price closes relative to midpoint
-  const midpoint = (keyHigh + keyLow) / 2;
-  let trend = candles[9].close >= midpoint ? 'bullish' : 'bearish';
+  const lookback = Math.max(20, Math.floor(candles.length * 0.2));
+  const recentStart = candles.length - lookback;
 
-  // Track the index where the current key level was last set
-  // so we can find the lowest low / highest high between structure points
-  let keyHighIdx = 0;
-  let keyLowIdx  = 0;
+  // Find most recent swing high and swing low in the recent window
+  let recentSwingHighIdx = -1, recentSwingLowIdx = -1;
+  for(let i = candles.length - 4; i >= recentStart; i--) {
+    if(recentSwingHighIdx === -1 &&
+       candles[i].high > candles[i-1].high && candles[i].high > candles[i-2].high &&
+       candles[i].high > candles[i+1].high && candles[i].high > candles[i+2].high) {
+      recentSwingHighIdx = i;
+    }
+    if(recentSwingLowIdx === -1 &&
+       candles[i].low < candles[i-1].low && candles[i].low < candles[i-2].low &&
+       candles[i].low < candles[i+1].low && candles[i].low < candles[i+2].low) {
+      recentSwingLowIdx = i;
+    }
+    if(recentSwingHighIdx !== -1 && recentSwingLowIdx !== -1) break;
+  }
 
-  // ── Walk every candle from index 10 onward ──
-  for(let i = 10; i < candles.length; i++) {
+  // Fallback to absolute extremes if no swing points found in recent window
+  if(recentSwingHighIdx === -1 || recentSwingLowIdx === -1) {
+    for(let i = 1; i < candles.length; i++) {
+      if(recentSwingHighIdx === -1 || candles[i].high > candles[recentSwingHighIdx].high) recentSwingHighIdx = i;
+      if(recentSwingLowIdx  === -1 || candles[i].low  < candles[recentSwingLowIdx].low)  recentSwingLowIdx  = i;
+    }
+  }
+
+  // ── Step 2: Seed from the most recent swing points ──
+  // Now walk backwards from the more recent of the two swing points
+  // to find the broader structure context — specifically the confirmed
+  // HH/HL or LH/LL that currently applies
+  //
+  // Seed: whichever swing point is more recent tells us current trend
+  let trend, keyHigh, keyLow, keyHighIdx, keyLowIdx;
+
+  if(recentSwingHighIdx > recentSwingLowIdx) {
+    // Most recent significant point is a high → price just pushed up → bullish
+    trend      = 'bullish';
+    keyHigh    = candles[recentSwingHighIdx].high;
+    keyHighIdx = recentSwingHighIdx;
+    // HL = lowest low between the swing low and the swing high
+    keyLow     = Math.min(...candles.slice(recentSwingLowIdx, recentSwingHighIdx + 1).map(c => c.low));
+    keyLowIdx  = recentSwingLowIdx;
+  } else {
+    // Most recent significant point is a low → price just pushed down → bearish
+    trend      = 'bearish';
+    keyLow     = candles[recentSwingLowIdx].low;
+    keyLowIdx  = recentSwingLowIdx;
+    // LH = highest high between the swing high and the swing low
+    keyHigh    = Math.max(...candles.slice(recentSwingHighIdx, recentSwingLowIdx + 1).map(c => c.high));
+    keyHighIdx = recentSwingHighIdx;
+  }
+
+  // ── Step 3: Walk forward from after the seed swing points ──
+  const startIdx = Math.max(recentSwingHighIdx, recentSwingLowIdx) + 1;
+
+  for(let i = startIdx; i < candles.length; i++) {
     const close = candles[i].close;
     const high  = candles[i].high;
     const low   = candles[i].low;
 
     if(trend === 'bullish') {
-      // ── Bearish CHoCH: close BELOW current HL ──
       if(close < keyLow) {
-        // New LL = this candle's low
-        // New LH = highest high between keyLowIdx and now
-        const newLH = Math.max(...candles.slice(keyLowIdx, i+1).map(c => c.high));
+        // ── CHoCH: bullish → bearish ──
+        const newLH = Math.max(...candles.slice(keyLowIdx, i + 1).map(c => c.high));
         trend      = 'bearish';
         keyLow     = low;
         keyHigh    = newLH;
         keyLowIdx  = i;
         keyHighIdx = i;
-
       } else if(close > keyHigh) {
-        // ── New HH confirmed: close ABOVE current HH ──
-        // New HL = lowest low between keyHighIdx and now
-        const newHL = Math.min(...candles.slice(keyHighIdx, i+1).map(c => c.low));
+        // ── New HH confirmed ──
+        const newHL = Math.min(...candles.slice(keyHighIdx, i + 1).map(c => c.low));
         keyHigh    = high;
         keyLow     = newHL;
         keyHighIdx = i;
         keyLowIdx  = i;
-        // trend stays bullish
       }
-      // else: between HL and HH — no change
+      // else: between HH and HL → no change
 
-    } else if(trend === 'bearish') {
-      // ── Bullish CHoCH: close ABOVE current LH ──
+    } else {
       if(close > keyHigh) {
-        // New HH = this candle's high
-        // New HL = lowest low between keyHighIdx and now
-        const newHL = Math.min(...candles.slice(keyHighIdx, i+1).map(c => c.low));
+        // ── CHoCH: bearish → bullish ──
+        const newHL = Math.min(...candles.slice(keyHighIdx, i + 1).map(c => c.low));
         trend      = 'bullish';
         keyHigh    = high;
         keyLow     = newHL;
         keyHighIdx = i;
         keyLowIdx  = i;
-
       } else if(close < keyLow) {
-        // ── New LL confirmed: close BELOW current LL ──
-        // New LH = highest high between keyLowIdx and now
-        const newLH = Math.max(...candles.slice(keyLowIdx, i+1).map(c => c.high));
+        // ── New LL confirmed ──
+        const newLH = Math.max(...candles.slice(keyLowIdx, i + 1).map(c => c.high));
         keyLow     = low;
         keyHigh    = newLH;
         keyLowIdx  = i;
         keyHighIdx = i;
-        // trend stays bearish
       }
-      // else: between LH and LL — no change
-
-    } else {
-      // Neutral seed — establish from first confirmed break
-      if(close > keyHigh) { trend = 'bullish'; keyHigh = high; keyHighIdx = i; }
-      else if(close < keyLow) { trend = 'bearish'; keyLow = low; keyLowIdx = i; }
+      // else: between LH and LL → no change
     }
   }
 
   return { trend, keyHigh, keyLow };
 }
 
-// Convenience wrapper — returns just the trend string
+// Convenience wrapper
 function detectTrend(candles) {
   return detectTrendStructure(candles).trend;
 }
