@@ -169,6 +169,114 @@
   .filter-btn.active{border-color:var(--accent);background:rgba(79,142,247,0.12);color:var(--accent)}
   .spinning{display:inline-block;animation:spin 0.8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ── SHARED NEW SECTIONS ── */
+  .page-hero { background: var(--surface); border: 0.5px solid var(--border2); border-radius: 14px; padding: 1.5rem; margin-bottom: 2rem; }
+  .page-hero h2 { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+  .page-hero p { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
+  .editable-area { width: 100%; background: var(--bg); border: 0.5px solid var(--border2); border-radius: 10px; padding: 1rem 1.25rem; font-family: var(--font-head); font-size: 14px; color: var(--text); line-height: 1.8; resize: vertical; min-height: 200px; outline: none; transition: border-color 0.2s; }
+  .editable-area:focus { border-color: var(--accent); }
+  .save-indicator { font-family: var(--font-mono); font-size: 11px; color: var(--bull); margin-top: 6px; opacity: 0; transition: opacity 0.3s; }
+  .save-indicator.show { opacity: 1; }
+
+  /* ── STRATEGY PLAN ── */
+  .strategy-section { background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .strategy-section-title { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; color: var(--accent); text-transform: uppercase; margin-bottom: 0.75rem; }
+
+  /* ── KEY PRINCIPLES ── */
+  .principles-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
+  .principle-item { display: flex; align-items: flex-start; gap: 10px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .principle-num { font-family: var(--font-mono); font-size: 11px; color: var(--accent); min-width: 24px; padding-top: 1px; }
+  .principle-text { flex: 1; font-size: 14px; line-height: 1.6; color: var(--text); background: transparent; border: none; outline: none; font-family: var(--font-head); resize: none; }
+  .principle-del { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 0 4px; line-height: 1; }
+  .principle-del:hover { color: var(--bear); }
+  .add-principle-row { display: flex; gap: 8px; }
+  .add-principle-input { flex: 1; background: var(--bg); border: 0.5px solid var(--border2); border-radius: 8px; padding: 10px 14px; font-family: var(--font-head); font-size: 14px; color: var(--text); outline: none; }
+  .add-principle-input:focus { border-color: var(--accent); }
+  .btn-add { background: var(--accent); color: #fff; font-weight: 600; font-size: 13px; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-family: var(--font-head); white-space: nowrap; }
+
+  /* ── INVESTMENT JOURNAL ── */
+  .inv-table-wrap { overflow-x: auto; border-radius: 12px; border: 0.5px solid var(--border); }
+  .inv-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px; }
+  .inv-table th { background: var(--surface2); color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 10px 14px; text-align: left; border-bottom: 0.5px solid var(--border2); }
+  .inv-table td { padding: 10px 14px; border-bottom: 0.5px solid var(--border); color: var(--text); vertical-align: middle; }
+  .inv-table tr:last-child td { border-bottom: none; }
+  .inv-table tr:hover td { background: var(--surface2); }
+  .inv-input { background: transparent; border: none; outline: none; color: var(--text); font-family: var(--font-head); font-size: 13px; width: 100%; }
+  .inv-input::placeholder { color: var(--muted); }
+  .status-open { background: rgba(0,208,132,0.12); color: var(--bull); font-family: var(--font-mono); font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 99px; }
+  .status-closed { background: rgba(255,77,109,0.12); color: var(--bear); font-family: var(--font-mono); font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 99px; }
+  .pl-positive { color: var(--bull); font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+  .pl-negative { color: var(--bear); font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+  .pl-neutral  { color: var(--muted); font-family: var(--font-mono); font-size: 12px; }
+  .del-btn { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; }
+  .del-btn:hover { color: var(--bear); background: rgba(255,77,109,0.1); }
+  .inv-summary { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 1.5rem; }
+  .inv-stat { background: var(--surface); border: 0.5px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .inv-stat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  .inv-stat-val { font-size: 20px; font-weight: 800; }
+
+  /* ── TRADING JOURNAL ── */
+  .month-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .month-select { background: var(--bg); border: 0.5px solid var(--border2); border-radius: 8px; padding: 8px 12px; font-family: var(--font-mono); font-size: 13px; color: var(--text); outline: none; cursor: pointer; }
+  .month-select:focus { border-color: var(--accent); }
+  .year-input { background: var(--bg); border: 0.5px solid var(--border2); border-radius: 8px; padding: 8px 12px; font-family: var(--font-mono); font-size: 13px; color: var(--text); outline: none; width: 80px; }
+  .year-input:focus { border-color: var(--accent); }
+  .year-group { margin-bottom: 2rem; }
+  .year-header { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 1rem; padding-bottom: 8px; border-bottom: 0.5px solid var(--border2); }
+  .month-block { background: var(--surface); border: 0.5px solid var(--border); border-radius: 14px; margin-bottom: 1.25rem; overflow: hidden; }
+  .month-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; cursor: pointer; }
+  .month-header:hover { background: var(--surface2); }
+  .month-title { font-size: 15px; font-weight: 700; }
+  .month-summary-chips { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .mchip { font-family: var(--font-mono); font-size: 10px; padding: 3px 8px; border-radius: 99px; }
+  .mchip-win { background: rgba(0,208,132,0.12); color: var(--bull); }
+  .mchip-loss { background: rgba(255,77,109,0.12); color: var(--bear); }
+  .mchip-pl { font-weight: 700; }
+  .month-body { padding: 0 1.25rem 1.25rem; display: none; }
+  .month-body.open { display: block; }
+  .trade-table-wrap { overflow-x: auto; border-radius: 8px; border: 0.5px solid var(--border); margin-bottom: 1rem; }
+  .trade-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 500px; }
+  .trade-table th { background: var(--surface2); color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 8px 12px; text-align: left; border-bottom: 0.5px solid var(--border2); }
+  .trade-table td { padding: 8px 12px; border-bottom: 0.5px solid var(--border); color: var(--text); }
+  .trade-table tr:last-child td { border-bottom: none; }
+  .dir-bull { color: var(--bull); font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
+  .dir-bear { color: var(--bear); font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
+  .result-win { color: var(--bull); font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
+  .result-loss { color: var(--bear); font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
+  .monthly-note-wrap { margin-top: 1rem; }
+  .monthly-note-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  .monthly-note { width: 100%; background: var(--bg); border: 0.5px solid var(--border2); border-radius: 8px; padding: 10px 14px; font-family: var(--font-head); font-size: 13px; color: var(--text); line-height: 1.7; resize: vertical; min-height: 80px; outline: none; }
+  .monthly-note:focus { border-color: var(--accent); }
+  .add-trade-row { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr auto; gap: 8px; margin-bottom: 1rem; }
+  @media(max-width:640px){ .add-trade-row { grid-template-columns: 1fr 1fr; } }
+  .trade-input { background: var(--bg); border: 0.5px solid var(--border2); border-radius: 8px; padding: 8px 12px; font-family: var(--font-head); font-size: 13px; color: var(--text); outline: none; }
+  .trade-input:focus { border-color: var(--accent); }
+  .trade-select { background: var(--bg); border: 0.5px solid var(--border2); border-radius: 8px; padding: 8px 12px; font-family: var(--font-head); font-size: 13px; color: var(--text); outline: none; cursor: pointer; }
+
+  /* ── 100 TRADES ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; margin-bottom: 2rem; }
+  @media(min-width:640px){ .stats-grid { grid-template-columns: repeat(5, minmax(0,1fr)); } }
+  .stat-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .stat-card-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  .stat-card-val { font-size: 20px; font-weight: 800; }
+  .stat-card-val.green { color: var(--bull); }
+  .stat-card-val.red { color: var(--bear); }
+  .stat-card-val.blue { color: var(--accent); }
+  .stat-card-val.gold { color: var(--gold); }
+  .pair-perf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 2rem; }
+  .pair-perf-box { background: var(--surface); border: 0.5px solid var(--border); border-radius: 10px; padding: 14px; }
+  .pair-perf-title { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
+  .pair-perf-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+  .pair-perf-item:last-child { border-bottom: none; }
+  .hundred-table-wrap { overflow-x: auto; border-radius: 12px; border: 0.5px solid var(--border); }
+  .hundred-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .hundred-table th { background: var(--surface2); color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 10px 14px; text-align: left; border-bottom: 0.5px solid var(--border2); }
+  .hundred-table td { padding: 8px 14px; border-bottom: 0.5px solid var(--border); color: var(--text); }
+  .hundred-table tr:last-child td { border-bottom: none; }
+  .trade-num { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+  .progress-trades { background: var(--surface2); border-radius: 99px; height: 8px; width: 100%; overflow: hidden; margin-bottom: 6px; }
+  .progress-trades-fill { height: 8px; background: var(--accent); border-radius: 99px; transition: width 0.5s; }
 </style>
 </head>
 <body>
@@ -179,6 +287,11 @@
     <div class="nav-tabs">
       <button class="nav-tab macro-tab active" id="tab-macro" onclick="showPage('macro',this)">📅 Macro Events</button>
       <button class="nav-tab analysis-tab" id="tab-analysis" onclick="showPage('analysis',this)">📊 Technical Analysis</button>
+      <button class="nav-tab" id="tab-strategy" onclick="showPage('strategy',this)">📋 Strategy Plan</button>
+      <button class="nav-tab" id="tab-principles" onclick="showPage('principles',this)">💡 Key Principles</button>
+      <button class="nav-tab" id="tab-investments" onclick="showPage('investments',this)">💼 Investments</button>
+      <button class="nav-tab" id="tab-journal" onclick="showPage('journal',this)">📓 Trading Journal</button>
+      <button class="nav-tab" id="tab-hundred" onclick="showPage('hundred',this)">🎯 100 Trades</button>
       <button class="nav-tab" id="tab-settings" onclick="showPage('settings',this)">⚙️ Settings</button>
     </div>
     <div class="nav-week" id="navWeek">Loading...</div>
@@ -308,6 +421,156 @@
       <span>Rules:</span> Trade Mon–Thu only · London / NY session 08:00–17:30 GMT · Max 3 trades/week · Only trade with trend · Set and forget! · If you can't explain the trade, you don't have one<br><br>
       <span>Data:</span> Powered by Twelve Data · Results persist until end of Friday each week
     </div>
+  </div>
+</div>
+
+<!-- STRATEGY PLAN PAGE -->
+<div class="page" id="page-strategy">
+  <div class="page-title">Strategy Plan</div>
+  <div class="page-sub">Your trading framework · Edits save automatically</div>
+
+  <div class="strategy-section">
+    <div class="strategy-section-title">Purpose</div>
+    <textarea class="editable-area" id="strat-purpose" placeholder="Why do you trade? What is your purpose..." rows="4" oninput="saveStrategy()"></textarea>
+    <div class="save-indicator" id="si-purpose">Saved ✓</div>
+  </div>
+
+  <div class="strategy-section">
+    <div class="strategy-section-title">Goal</div>
+    <textarea class="editable-area" id="strat-goal" placeholder="What are your trading goals — financial targets, timeline, milestones..." rows="4" oninput="saveStrategy()"></textarea>
+    <div class="save-indicator" id="si-goal">Saved ✓</div>
+  </div>
+
+  <div class="strategy-section">
+    <div class="strategy-section-title">Where I Trade</div>
+    <textarea class="editable-area" id="strat-where" placeholder="Markets, pairs, sessions, platforms you use..." rows="4" oninput="saveStrategy()"></textarea>
+    <div class="save-indicator" id="si-where">Saved ✓</div>
+  </div>
+
+  <div class="strategy-section">
+    <div class="strategy-section-title">How I Trade</div>
+    <textarea class="editable-area" id="strat-how" placeholder="Your full strategy framework — trend identification, AOI, entry, SL, TP, risk management..." rows="10" oninput="saveStrategy()"></textarea>
+    <div class="save-indicator" id="si-how">Saved ✓</div>
+  </div>
+</div>
+
+<!-- KEY PRINCIPLES PAGE -->
+<div class="page" id="page-principles">
+  <div class="page-title">Key Principles</div>
+  <div class="page-sub">Your core trading rules · Read these before every trading week</div>
+
+  <div class="principles-list" id="principlesList"></div>
+
+  <div class="add-principle-row">
+    <input class="add-principle-input" id="principleInput" placeholder="Add a new principle..." onkeydown="if(event.key==='Enter') addPrinciple()" />
+    <button class="btn-add" onclick="addPrinciple()">+ Add</button>
+  </div>
+  <div class="save-indicator" id="si-principles" style="margin-top:8px">Saved ✓</div>
+</div>
+
+<!-- INVESTMENTS PAGE -->
+<div class="page" id="page-investments">
+  <div class="page-title">Investment Journal</div>
+  <div class="page-sub">Track your long term investments · P&L auto-calculated</div>
+
+  <div class="inv-summary">
+    <div class="inv-stat"><div class="inv-stat-label">Total invested</div><div class="inv-stat-val blue" id="invTotalIn">R 0</div></div>
+    <div class="inv-stat"><div class="inv-stat-label">Total realised P&L</div><div class="inv-stat-val" id="invTotalPL">R 0</div></div>
+    <div class="inv-stat"><div class="inv-stat-label">Open positions</div><div class="inv-stat-val blue" id="invOpen">0</div></div>
+  </div>
+
+  <div style="margin-bottom:1rem">
+    <button class="btn-add" onclick="addInvestment()">+ Add investment</button>
+  </div>
+
+  <div class="inv-table-wrap">
+    <table class="inv-table">
+      <thead>
+        <tr>
+          <th>Asset</th>
+          <th>Date entered</th>
+          <th>Buy price</th>
+          <th>Amount</th>
+          <th>Additions</th>
+          <th>Sale value</th>
+          <th>P&L</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="invTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- TRADING JOURNAL PAGE -->
+<div class="page" id="page-journal">
+  <div class="page-title">Trading Journal</div>
+  <div class="page-sub">Swing trade log · Organised by year and month · All amounts in ZAR</div>
+
+  <div class="month-controls">
+    <select class="month-select" id="journalMonth">
+      <option value="1">January</option><option value="2">February</option>
+      <option value="3">March</option><option value="4">April</option>
+      <option value="5">May</option><option value="6">June</option>
+      <option value="7">July</option><option value="8">August</option>
+      <option value="9">September</option><option value="10">October</option>
+      <option value="11">November</option><option value="12">December</option>
+    </select>
+    <input class="year-input" id="journalYear" type="number" value="2026" min="2000" max="2099" />
+    <button class="btn-add" onclick="addTradeToJournal()">+ Add trade</button>
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">Select month & year then add trade</div>
+  </div>
+
+  <div id="journalContainer"></div>
+</div>
+
+<!-- 100 TRADES PAGE -->
+<div class="page" id="page-hundred">
+  <div class="page-title">100 Trades Analysis</div>
+  <div class="page-sub">Record up to 100 swing trades to analyse your strategy edge · All amounts in ZAR</div>
+
+  <div style="margin-bottom:8px">
+    <div class="progress-trades"><div class="progress-trades-fill" id="tradeProgressFill"></div></div>
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--muted)" id="tradeProgressLabel">0 / 100 trades recorded</div>
+  </div>
+
+  <div class="stats-grid" style="margin-top:1.5rem">
+    <div class="stat-card"><div class="stat-card-label">Win rate</div><div class="stat-card-val green" id="s-winrate">—</div></div>
+    <div class="stat-card"><div class="stat-card-label">Edge</div><div class="stat-card-val blue" id="s-edge">—</div></div>
+    <div class="stat-card"><div class="stat-card-label">Total profit</div><div class="stat-card-val" id="s-total">—</div></div>
+    <div class="stat-card"><div class="stat-card-label">Avg win</div><div class="stat-card-val green" id="s-avgwin">—</div></div>
+    <div class="stat-card"><div class="stat-card-label">Avg loss</div><div class="stat-card-val red" id="s-avgloss">—</div></div>
+  </div>
+
+  <div class="pair-perf-grid">
+    <div class="pair-perf-box">
+      <div class="pair-perf-title">Best pairs</div>
+      <div id="bestPairs"><div style="font-family:var(--font-mono);font-size:12px;color:var(--muted)">No data yet</div></div>
+    </div>
+    <div class="pair-perf-box">
+      <div class="pair-perf-title">Worst pairs</div>
+      <div id="worstPairs"><div style="font-family:var(--font-mono);font-size:12px;color:var(--muted)">No data yet</div></div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:1rem">
+    <button class="btn-add" onclick="addHundredTrade()" id="btnAddHundred">+ Add trade</button>
+  </div>
+
+  <div class="hundred-table-wrap">
+    <table class="hundred-table">
+      <thead>
+        <tr>
+          <th style="width:50px">#</th>
+          <th>Pair</th>
+          <th>P&L (ZAR)</th>
+          <th>Note</th>
+          <th style="width:40px"></th>
+        </tr>
+      </thead>
+      <tbody id="hundredTableBody"></tbody>
+    </table>
   </div>
 </div>
 
@@ -1440,6 +1703,459 @@ function renderAllResults(doSummary=true) {
 }
 
 init();
-</script>
+
+// ══════════════════════════════════════════════════════
+// ── STRATEGY PLAN ──
+// ══════════════════════════════════════════════════════
+function saveStrategy() {
+  const data = {
+    purpose: document.getElementById('strat-purpose').value,
+    goal:    document.getElementById('strat-goal').value,
+    where:   document.getElementById('strat-where').value,
+    how:     document.getElementById('strat-how').value,
+  };
+  localStorage.setItem('forex_strategy', JSON.stringify(data));
+  ['purpose','goal','where','how'].forEach(k => {
+    const si = document.getElementById('si-' + k);
+    si.classList.add('show');
+    setTimeout(() => si.classList.remove('show'), 1500);
+  });
+}
+
+function loadStrategy() {
+  const raw = localStorage.getItem('forex_strategy');
+  if(!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    document.getElementById('strat-purpose').value = d.purpose || '';
+    document.getElementById('strat-goal').value    = d.goal    || '';
+    document.getElementById('strat-where').value   = d.where   || '';
+    document.getElementById('strat-how').value     = d.how     || '';
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════════════
+// ── KEY PRINCIPLES ──
+// ══════════════════════════════════════════════════════
+let principles = [];
+
+function savePrinciples() {
+  localStorage.setItem('forex_principles', JSON.stringify(principles));
+  const si = document.getElementById('si-principles');
+  si.classList.add('show');
+  setTimeout(() => si.classList.remove('show'), 1500);
+}
+
+function loadPrinciples() {
+  const raw = localStorage.getItem('forex_principles');
+  if(raw) try { principles = JSON.parse(raw); } catch(e) {}
+  renderPrinciples();
+}
+
+function renderPrinciples() {
+  const list = document.getElementById('principlesList');
+  if(principles.length === 0) {
+    list.innerHTML = `<div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);padding:1rem 0">No principles added yet. Add your first below.</div>`;
+    return;
+  }
+  list.innerHTML = principles.map((p, i) => `
+    <div class="principle-item">
+      <div class="principle-num">${i + 1}</div>
+      <textarea class="principle-text" rows="1" oninput="updatePrinciple(${i}, this.value); autoResize(this)"
+        onchange="savePrinciples()">${p}</textarea>
+      <button class="principle-del" onclick="deletePrinciple(${i})">×</button>
+    </div>`).join('');
+  list.querySelectorAll('.principle-text').forEach(autoResize);
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+function updatePrinciple(i, val) { principles[i] = val; }
+function deletePrinciple(i) { principles.splice(i, 1); savePrinciples(); renderPrinciples(); }
+
+function addPrinciple() {
+  const input = document.getElementById('principleInput');
+  const val = input.value.trim();
+  if(!val) return;
+  principles.push(val);
+  savePrinciples();
+  renderPrinciples();
+  input.value = '';
+}
+
+// ══════════════════════════════════════════════════════
+// ── INVESTMENT JOURNAL ──
+// ══════════════════════════════════════════════════════
+let investments = [];
+
+function saveInvestments() { localStorage.setItem('forex_investments', JSON.stringify(investments)); }
+
+function loadInvestments() {
+  const raw = localStorage.getItem('forex_investments');
+  if(raw) try { investments = JSON.parse(raw); } catch(e) {}
+  renderInvestments();
+}
+
+function calcInvPL(inv) {
+  const buy    = parseFloat(inv.buyPrice)  || 0;
+  const amount = parseFloat(inv.amount)    || 0;
+  const adds   = parseFloat(inv.additions) || 0;
+  const sale   = parseFloat(inv.saleValue);
+  if(!inv.saleValue || isNaN(sale)) return null; // open
+  return (sale - buy) * amount + adds;
+}
+
+function renderInvestments() {
+  const tbody = document.getElementById('invTableBody');
+  tbody.innerHTML = '';
+
+  let totalIn = 0, totalPL = 0, openCount = 0;
+
+  investments.forEach((inv, i) => {
+    const pl = calcInvPL(inv);
+    const isOpen = pl === null;
+    if(isOpen) openCount++;
+    const buyAmt = (parseFloat(inv.buyPrice)||0) * (parseFloat(inv.amount)||0);
+    totalIn += buyAmt;
+    if(!isOpen) totalPL += pl;
+
+    const plHtml = isOpen
+      ? '<span class="pl-neutral">—</span>'
+      : pl >= 0
+        ? `<span class="pl-positive">R ${pl.toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>`
+        : `<span class="pl-negative">R ${pl.toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>`;
+
+    const statusHtml = isOpen
+      ? '<span class="status-open">OPEN</span>'
+      : '<span class="status-closed">CLOSED</span>';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input class="inv-input" value="${inv.asset||''}" placeholder="Asset" onchange="investments[${i}].asset=this.value;saveInvestments();renderInvestments()"/></td>
+      <td><input class="inv-input" value="${inv.dateEntered||''}" placeholder="DD/MM/YYYY" style="width:110px" onchange="investments[${i}].dateEntered=this.value;saveInvestments()"/></td>
+      <td><input class="inv-input" value="${inv.buyPrice||''}" placeholder="0.00" type="number" style="width:90px" onchange="investments[${i}].buyPrice=this.value;saveInvestments();renderInvestments()"/></td>
+      <td><input class="inv-input" value="${inv.amount||''}" placeholder="0" type="number" style="width:80px" onchange="investments[${i}].amount=this.value;saveInvestments();renderInvestments()"/></td>
+      <td><input class="inv-input" value="${inv.additions||''}" placeholder="0.00" type="number" style="width:90px" onchange="investments[${i}].additions=this.value;saveInvestments();renderInvestments()"/></td>
+      <td><input class="inv-input" value="${inv.saleValue||''}" placeholder="—" type="number" style="width:90px" onchange="investments[${i}].saleValue=this.value;saveInvestments();renderInvestments()"/></td>
+      <td>${plHtml}</td>
+      <td>${statusHtml}</td>
+      <td><button class="del-btn" onclick="deleteInvestment(${i})">🗑</button></td>`;
+    tbody.appendChild(tr);
+  });
+
+  // Summary
+  document.getElementById('invTotalIn').textContent = `R ${totalIn.toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  const plEl = document.getElementById('invTotalPL');
+  plEl.textContent = `R ${totalPL.toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  plEl.className = 'inv-stat-val ' + (totalPL >= 0 ? 'green' : 'red');
+  document.getElementById('invOpen').textContent = openCount;
+}
+
+function addInvestment() {
+  investments.push({ asset:'', dateEntered:'', buyPrice:'', amount:'', additions:'', saleValue:'' });
+  saveInvestments();
+  renderInvestments();
+}
+
+function deleteInvestment(i) {
+  if(!confirm('Delete this investment?')) return;
+  investments.splice(i, 1);
+  saveInvestments();
+  renderInvestments();
+}
+
+// ══════════════════════════════════════════════════════
+// ── TRADING JOURNAL ──
+// ══════════════════════════════════════════════════════
+let journalTrades = {};  // { "2026-5": [{pair,direction,result,pl}, ...] }
+let journalNotes  = {};  // { "2026-5": "monthly note text" }
+
+const MONTH_NAMES = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function journalKey(year, month) { return `${year}-${month}`; }
+
+function saveJournal() {
+  localStorage.setItem('forex_journal_trades', JSON.stringify(journalTrades));
+  localStorage.setItem('forex_journal_notes',  JSON.stringify(journalNotes));
+}
+
+function loadJournal() {
+  const rt = localStorage.getItem('forex_journal_trades');
+  const rn = localStorage.getItem('forex_journal_notes');
+  if(rt) try { journalTrades = JSON.parse(rt); } catch(e) {}
+  if(rn) try { journalNotes  = JSON.parse(rn);  } catch(e) {}
+  // Set default month/year to current
+  const now = new Date();
+  document.getElementById('journalMonth').value = now.getMonth() + 1;
+  document.getElementById('journalYear').value  = now.getFullYear();
+  renderJournal();
+}
+
+function addTradeToJournal() {
+  const month = parseInt(document.getElementById('journalMonth').value);
+  const year  = parseInt(document.getElementById('journalYear').value);
+  if(!month || !year) return;
+  const key = journalKey(year, month);
+  if(!journalTrades[key]) journalTrades[key] = [];
+  journalTrades[key].push({ pair:'', direction:'Bullish', result:'Win', pl:'' });
+  saveJournal();
+  renderJournal();
+  // Auto-open the month we just added to
+  setTimeout(() => {
+    const body = document.getElementById('jbody-' + key);
+    if(body) body.classList.add('open');
+  }, 50);
+}
+
+function updateJournalTrade(key, i, field, val) {
+  if(journalTrades[key] && journalTrades[key][i]) {
+    journalTrades[key][i][field] = val;
+    saveJournal();
+    if(field === 'result' || field === 'pl') renderJournalMonthHeader(key);
+  }
+}
+
+function deleteJournalTrade(key, i) {
+  journalTrades[key].splice(i, 1);
+  saveJournal();
+  renderJournal();
+}
+
+function saveJournalNote(key, val) {
+  journalNotes[key] = val;
+  saveJournal();
+}
+
+function renderJournalMonthHeader(key) {
+  const trades = journalTrades[key] || [];
+  const wins   = trades.filter(t => t.result === 'Win').length;
+  const losses = trades.filter(t => t.result === 'Loss').length;
+  const totalPL = trades.reduce((s, t) => s + (parseFloat(t.pl) || 0), 0);
+  const plStr = `R ${totalPL.toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  const chips = document.getElementById('jchips-' + key);
+  if(chips) chips.innerHTML = `
+    <span class="mchip mchip-win">${wins}W</span>
+    <span class="mchip mchip-loss">${losses}L</span>
+    <span class="mchip mchip-pl ${totalPL>=0?'mchip-win':'mchip-loss'}">${plStr}</span>
+    <span class="mchip" style="background:var(--surface2);color:var(--muted)">${trades.length} trade${trades.length!==1?'s':''}</span>`;
+}
+
+function renderJournal() {
+  const container = document.getElementById('journalContainer');
+  container.innerHTML = '';
+
+  // Group keys by year
+  const allKeys = Object.keys(journalTrades).filter(k => journalTrades[k].length > 0 || journalNotes[k]);
+  if(allKeys.length === 0) {
+    container.innerHTML = `<div class="empty">No trades recorded yet. Select a month and year above and click + Add trade.</div>`;
+    return;
+  }
+
+  const byYear = {};
+  allKeys.forEach(k => {
+    const [y] = k.split('-');
+    if(!byYear[y]) byYear[y] = [];
+    byYear[y].push(k);
+  });
+
+  Object.keys(byYear).sort((a,b) => b-a).forEach(year => {
+    const yg = document.createElement('div'); yg.className = 'year-group';
+    yg.innerHTML = `<div class="year-header">${year}</div>`;
+
+    byYear[year].sort((a,b) => {
+      const [,ma] = a.split('-'); const [,mb] = b.split('-');
+      return parseInt(mb) - parseInt(ma);
+    }).forEach(key => {
+      const [y, m] = key.split('-');
+      const trades = journalTrades[key] || [];
+      const note   = journalNotes[key]  || '';
+
+      const block = document.createElement('div'); block.className = 'month-block';
+      block.innerHTML = `
+        <div class="month-header" onclick="toggleMonthBody('${key}')">
+          <div class="month-title">${MONTH_NAMES[parseInt(m)]} ${y}</div>
+          <div class="month-summary-chips" id="jchips-${key}"></div>
+        </div>
+        <div class="month-body" id="jbody-${key}">
+          <div class="add-trade-row" style="margin-bottom:1rem">
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);grid-column:1/-1">
+              Trades for ${MONTH_NAMES[parseInt(m)]} ${y}
+            </div>
+          </div>
+          <div class="trade-table-wrap">
+            <table class="trade-table">
+              <thead><tr><th>Pair</th><th>Direction</th><th>Result</th><th>P&L (ZAR)</th><th></th></tr></thead>
+              <tbody id="jtbody-${key}"></tbody>
+            </table>
+          </div>
+          <div class="monthly-note-wrap">
+            <div class="monthly-note-label">Monthly review</div>
+            <textarea class="monthly-note" placeholder="Write your monthly trading review here..." onchange="saveJournalNote('${key}', this.value)">${note}</textarea>
+          </div>
+        </div>`;
+      yg.appendChild(block);
+
+      // Render trades
+      const tbody = block.querySelector(`#jtbody-${key}`);
+      trades.forEach((t, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input class="trade-input" value="${t.pair||''}" placeholder="EUR/USD" style="width:90px" onchange="updateJournalTrade('${key}',${i},'pair',this.value)"/></td>
+          <td><select class="trade-select" onchange="updateJournalTrade('${key}',${i},'direction',this.value)">
+            <option ${t.direction==='Bullish'?'selected':''}>Bullish</option>
+            <option ${t.direction==='Bearish'?'selected':''}>Bearish</option>
+          </select></td>
+          <td><select class="trade-select" onchange="updateJournalTrade('${key}',${i},'result',this.value)">
+            <option ${t.result==='Win'?'selected':''}>Win</option>
+            <option ${t.result==='Loss'?'selected':''}>Loss</option>
+          </select></td>
+          <td><input class="trade-input" value="${t.pl||''}" placeholder="0.00" type="number" style="width:100px"
+            onchange="updateJournalTrade('${key}',${i},'pl',this.value)"/></td>
+          <td><button class="del-btn" onclick="deleteJournalTrade('${key}',${i})">🗑</button></td>`;
+        tbody.appendChild(tr);
+      });
+
+      renderJournalMonthHeader(key);
+    });
+
+    container.appendChild(yg);
+  });
+}
+
+function toggleMonthBody(key) {
+  const body = document.getElementById('jbody-' + key);
+  if(body) body.classList.toggle('open');
+}
+
+// ══════════════════════════════════════════════════════
+// ── 100 TRADES ──
+// ══════════════════════════════════════════════════════
+let hundredTrades = [];
+
+function saveHundred() { localStorage.setItem('forex_hundred', JSON.stringify(hundredTrades)); }
+
+function loadHundred() {
+  const raw = localStorage.getItem('forex_hundred');
+  if(raw) try { hundredTrades = JSON.parse(raw); } catch(e) {}
+  renderHundred();
+}
+
+function addHundredTrade() {
+  if(hundredTrades.length >= 100) { alert('100 trades reached — your dataset is complete!'); return; }
+  hundredTrades.push({ pair:'', pl:'', note:'' });
+  saveHundred();
+  renderHundred();
+}
+
+function updateHundredTrade(i, field, val) {
+  if(hundredTrades[i]) { hundredTrades[i][field] = val; saveHundred(); calcHundredStats(); }
+}
+
+function deleteHundredTrade(i) {
+  hundredTrades.splice(i, 1);
+  saveHundred();
+  renderHundred();
+}
+
+function calcHundredStats() {
+  const trades = hundredTrades.filter(t => t.pl !== '' && !isNaN(parseFloat(t.pl)));
+  const n = trades.length;
+  if(n === 0) {
+    ['s-winrate','s-edge','s-total','s-avgwin','s-avgloss'].forEach(id => {
+      document.getElementById(id).textContent = '—';
+      document.getElementById(id).className = 'stat-card-val';
+    });
+    document.getElementById('bestPairs').innerHTML  = '<div style="font-family:var(--font-mono);font-size:12px;color:var(--muted)">No data yet</div>';
+    document.getElementById('worstPairs').innerHTML = '<div style="font-family:var(--font-mono);font-size:12px;color:var(--muted)">No data yet</div>';
+    return;
+  }
+
+  const wins   = trades.filter(t => parseFloat(t.pl) > 0);
+  const losses = trades.filter(t => parseFloat(t.pl) < 0);
+  const winRate = wins.length / n;
+  const avgWin  = wins.length  > 0 ? wins.reduce((s,t)  => s + parseFloat(t.pl), 0) / wins.length  : 0;
+  const avgLoss = losses.length > 0 ? Math.abs(losses.reduce((s,t) => s + parseFloat(t.pl), 0) / losses.length) : 0;
+  const rrRatio = avgLoss > 0 ? avgWin / avgLoss : 0;
+  const edge    = ((rrRatio + 1) * winRate) - 1;
+  const total   = trades.reduce((s,t) => s + parseFloat(t.pl), 0);
+
+  const fmt = v => `R ${v.toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+
+  document.getElementById('s-winrate').textContent = `${(winRate*100).toFixed(1)}%`;
+  document.getElementById('s-winrate').className = 'stat-card-val ' + (winRate >= 0.5 ? 'green' : 'red');
+
+  document.getElementById('s-edge').textContent = edge.toFixed(3);
+  document.getElementById('s-edge').className = 'stat-card-val ' + (edge > 0 ? 'blue' : 'red');
+
+  document.getElementById('s-total').textContent = fmt(total);
+  document.getElementById('s-total').className = 'stat-card-val ' + (total >= 0 ? 'green' : 'red');
+
+  document.getElementById('s-avgwin').textContent  = fmt(avgWin);
+  document.getElementById('s-avgloss').textContent = fmt(avgLoss);
+
+  // Pair performance
+  const pairMap = {};
+  trades.forEach(t => {
+    const p = t.pair || 'Unknown';
+    if(!pairMap[p]) pairMap[p] = { total:0, count:0 };
+    pairMap[p].total += parseFloat(t.pl);
+    pairMap[p].count++;
+  });
+  const pairArr = Object.entries(pairMap).map(([pair,d]) => ({ pair, total:d.total, count:d.count }));
+  pairArr.sort((a,b) => b.total - a.total);
+
+  const best  = pairArr.slice(0,5);
+  const worst = pairArr.slice(-5).reverse();
+
+  const pairHtml = (arr, positive) => arr.map(p => `
+    <div class="pair-perf-item">
+      <span style="font-family:var(--font-mono);font-size:12px">${p.pair}</span>
+      <span style="${positive?'color:var(--bull)':'color:var(--bear)'};font-family:var(--font-mono);font-size:12px;font-weight:700">${fmt(p.total)}</span>
+    </div>`).join('');
+
+  document.getElementById('bestPairs').innerHTML  = pairHtml(best, true);
+  document.getElementById('worstPairs').innerHTML = pairHtml(worst, false);
+}
+
+function renderHundred() {
+  const tbody = document.getElementById('hundredTableBody');
+  tbody.innerHTML = '';
+
+  const count = hundredTrades.length;
+  document.getElementById('tradeProgressFill').style.width = `${count}%`;
+  document.getElementById('tradeProgressLabel').textContent = `${count} / 100 trades recorded`;
+  document.getElementById('btnAddHundred').disabled = count >= 100;
+
+  hundredTrades.forEach((t, i) => {
+    const pl = parseFloat(t.pl);
+    const plColor = isNaN(pl) ? 'var(--muted)' : pl > 0 ? 'var(--bull)' : pl < 0 ? 'var(--bear)' : 'var(--muted)';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="trade-num">${i+1}</td>
+      <td><input class="trade-input" value="${t.pair||''}" placeholder="EUR/USD" style="width:90px"
+        onchange="updateHundredTrade(${i},'pair',this.value)"/></td>
+      <td><input class="trade-input" value="${t.pl||''}" placeholder="0.00" type="number"
+        style="width:110px;color:${plColor};font-family:var(--font-mono)"
+        onchange="updateHundredTrade(${i},'pl',this.value)"/></td>
+      <td><input class="trade-input" value="${t.note||''}" placeholder="Optional note..."
+        style="width:100%" onchange="updateHundredTrade(${i},'note',this.value)"/></td>
+      <td><button class="del-btn" onclick="deleteHundredTrade(${i})">🗑</button></td>`;
+    tbody.appendChild(tr);
+  });
+
+  calcHundredStats();
+}
+
+// ══════════════════════════════════════════════════════
+// ── LOAD ALL NEW SECTIONS ON INIT ──
+// ══════════════════════════════════════════════════════
+loadStrategy();
+loadPrinciples();
+loadInvestments();
+loadJournal();
+loadHundred();</script>
 </body>
 </html>
