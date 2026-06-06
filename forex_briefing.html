@@ -13,34 +13,35 @@
     --accent: #4f8ef7; --warn: #f59e0b; --gold: #fbbf24;
     --font-head: 'Syne', sans-serif; --font-mono: 'Space Mono', monospace;
   }
-  body { background: var(--bg); color: var(--text); font-family: var(--font-head); min-height: 100vh; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-head); min-height: 100vh; font-size: 16px; }
 
   .nav { position: sticky; top: 0; z-index: 100; background: rgba(10,12,15,0.95); backdrop-filter: blur(12px); border-bottom: 0.5px solid var(--border2); }
-  .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-  .nav-logo { font-size: 16px; font-weight: 800; color: var(--text); padding: 1rem 0; letter-spacing: -0.3px; }
+  .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .nav-left { display: flex; align-items: center; gap: 14px; padding: 0.75rem 0; }
+  .nav-logo { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
   .nav-logo span { color: var(--accent); }
-  .nav-tabs { display: flex; gap: 4px; }
-  .nav-tab { font-family: var(--font-head); font-size: 13px; font-weight: 600; padding: 8px 18px; border-radius: 8px; border: none; background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+  .nav-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+  .nav-tab { font-family: var(--font-head); font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 8px; border: none; background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; }
   .nav-tab:hover { color: var(--text); background: var(--surface2); }
   .nav-tab.active { background: var(--surface2); color: var(--text); border: 0.5px solid var(--border2); }
   .nav-tab.active.macro-tab { color: var(--warn); border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.08); }
   .nav-tab.active.analysis-tab { color: var(--bull); border-color: rgba(0,208,132,0.3); background: rgba(0,208,132,0.08); }
-  .nav-week { font-family: var(--font-mono); font-size: 11px; color: var(--accent); padding: 6px 12px; background: var(--surface2); border-radius: 6px; border: 0.5px solid var(--border2); white-space: nowrap; }
+  .nav-week { font-family: var(--font-mono); font-size: 12px; color: var(--accent); padding: 6px 12px; background: var(--surface2); border-radius: 6px; border: 0.5px solid var(--border2); white-space: nowrap; }
 
-  .page { display: none; max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .page { display: none; max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
   .page.active { display: block; }
 
   .section { margin-bottom: 2rem; }
   .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
-  .section-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
-  .page-title { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
-  .page-sub { font-size: 13px; color: var(--muted); font-family: var(--font-mono); margin-bottom: 2rem; }
-  .btn { font-family: var(--font-head); font-weight: 600; font-size: 13px; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; }
+  .section-title { font-size: 12px; font-weight: 700; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  .page-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .page-sub { font-size: 14px; color: var(--muted); font-family: var(--font-mono); margin-bottom: 2rem; }
+  .btn { font-family: var(--font-head); font-weight: 600; font-size: 14px; padding: 11px 22px; border-radius: 8px; border: none; cursor: pointer; }
   .btn-primary { background: var(--accent); color: #fff; }
   .btn-secondary { background: var(--surface2); color: var(--text); border: 0.5px solid var(--border2); }
-  .btn-sm { font-size: 11px; padding: 5px 12px; border-radius: 6px; border: 0.5px solid var(--border2); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: var(--font-mono); }
+  .btn-sm { font-size: 12px; padding: 6px 14px; border-radius: 6px; border: 0.5px solid var(--border2); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: var(--font-mono); }
   .btn-sm:hover { color: var(--text); border-color: var(--accent); }
-  .info-note { background: var(--surface2); border: 0.5px solid var(--border2); border-radius: 8px; padding: 12px 16px; font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.6; }
+  .info-note { background: var(--surface2); border: 0.5px solid var(--border2); border-radius: 8px; padding: 14px 18px; font-family: var(--font-mono); font-size: 13px; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.7; }
   .info-note span { color: var(--accent); }
 
   /* MACRO */
@@ -283,7 +284,10 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="nav-logo">Forex <span>Briefing</span></div>
+    <div class="nav-left">
+      <div class="nav-logo">The Forex <span>Briefing</span></div>
+      <div class="nav-week" id="navWeek">Loading...</div>
+    </div>
     <div class="nav-tabs">
       <button class="nav-tab macro-tab active" id="tab-macro" onclick="showPage('macro',this)">📅 Macro Events</button>
       <button class="nav-tab analysis-tab" id="tab-analysis" onclick="showPage('analysis',this)">📊 Technical Analysis</button>
@@ -294,7 +298,6 @@
       <button class="nav-tab" id="tab-hundred" onclick="showPage('hundred',this)">🎯 100 Trades</button>
       <button class="nav-tab" id="tab-settings" onclick="showPage('settings',this)">⚙️ Settings</button>
     </div>
-    <div class="nav-week" id="navWeek">Loading...</div>
   </div>
 </nav>
 
@@ -489,10 +492,9 @@
         <tr>
           <th>Asset</th>
           <th>Date entered</th>
-          <th>Buy price</th>
-          <th>Amount</th>
-          <th>Additions</th>
-          <th>Sale value</th>
+          <th>Amount invested (ZAR)</th>
+          <th>Additions (ZAR)</th>
+          <th>Sale value (ZAR)</th>
           <th>P&L</th>
           <th>Status</th>
           <th></th>
@@ -1750,6 +1752,8 @@ function loadPrinciples() {
   const raw = localStorage.getItem('forex_principles');
   if(raw) try { principles = JSON.parse(raw); } catch(e) {}
   renderPrinciples();
+  // Also re-render after DOM is ready in case page isn't visible yet
+  setTimeout(renderPrinciples, 100);
 }
 
 function renderPrinciples() {
@@ -1800,12 +1804,12 @@ function loadInvestments() {
 }
 
 function calcInvPL(inv) {
-  const buy    = parseFloat(inv.buyPrice)  || 0;
   const amount = parseFloat(inv.amount)    || 0;
   const adds   = parseFloat(inv.additions) || 0;
   const sale   = parseFloat(inv.saleValue);
+  const totalInvested = amount + adds;
   if(!inv.saleValue || isNaN(sale)) return null; // open
-  return (sale - buy) * amount + adds;
+  return sale - totalInvested;
 }
 
 function renderInvestments() {
@@ -1818,8 +1822,10 @@ function renderInvestments() {
     const pl = calcInvPL(inv);
     const isOpen = pl === null;
     if(isOpen) openCount++;
-    const buyAmt = (parseFloat(inv.buyPrice)||0) * (parseFloat(inv.amount)||0);
-    totalIn += buyAmt;
+    const amount = parseFloat(inv.amount)    || 0;
+    const adds   = parseFloat(inv.additions) || 0;
+    const invested = amount + adds;
+    totalIn += invested;
     if(!isOpen) totalPL += pl;
 
     const plHtml = isOpen
@@ -1836,17 +1842,15 @@ function renderInvestments() {
     tr.innerHTML = `
       <td><input class="inv-input" value="${inv.asset||''}" placeholder="Asset" onchange="investments[${i}].asset=this.value;saveInvestments();renderInvestments()"/></td>
       <td><input class="inv-input" value="${inv.dateEntered||''}" placeholder="DD/MM/YYYY" style="width:110px" onchange="investments[${i}].dateEntered=this.value;saveInvestments()"/></td>
-      <td><input class="inv-input" value="${inv.buyPrice||''}" placeholder="0.00" type="number" style="width:90px" onchange="investments[${i}].buyPrice=this.value;saveInvestments();renderInvestments()"/></td>
-      <td><input class="inv-input" value="${inv.amount||''}" placeholder="0" type="number" style="width:80px" onchange="investments[${i}].amount=this.value;saveInvestments();renderInvestments()"/></td>
-      <td><input class="inv-input" value="${inv.additions||''}" placeholder="0.00" type="number" style="width:90px" onchange="investments[${i}].additions=this.value;saveInvestments();renderInvestments()"/></td>
-      <td><input class="inv-input" value="${inv.saleValue||''}" placeholder="—" type="number" style="width:90px" onchange="investments[${i}].saleValue=this.value;saveInvestments();renderInvestments()"/></td>
+      <td><input class="inv-input" value="${inv.amount||''}" placeholder="0.00" type="number" style="width:110px" onchange="investments[${i}].amount=this.value;saveInvestments();renderInvestments()"/></td>
+      <td><input class="inv-input" value="${inv.additions||''}" placeholder="0.00" type="number" style="width:110px" onchange="investments[${i}].additions=this.value;saveInvestments();renderInvestments()"/></td>
+      <td><input class="inv-input" value="${inv.saleValue||''}" placeholder="—" type="number" style="width:110px" onchange="investments[${i}].saleValue=this.value;saveInvestments();renderInvestments()"/></td>
       <td>${plHtml}</td>
       <td>${statusHtml}</td>
       <td><button class="del-btn" onclick="deleteInvestment(${i})">🗑</button></td>`;
     tbody.appendChild(tr);
   });
 
-  // Summary
   document.getElementById('invTotalIn').textContent = `R ${totalIn.toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
   const plEl = document.getElementById('invTotalPL');
   plEl.textContent = `R ${totalPL.toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
@@ -1855,7 +1859,7 @@ function renderInvestments() {
 }
 
 function addInvestment() {
-  investments.push({ asset:'', dateEntered:'', buyPrice:'', amount:'', additions:'', saleValue:'' });
+  investments.push({ asset:'', dateEntered:'', amount:'', additions:'', saleValue:'' });
   saveInvestments();
   renderInvestments();
 }
@@ -1882,12 +1886,20 @@ function saveJournal() {
   localStorage.setItem('forex_journal_notes',  JSON.stringify(journalNotes));
 }
 
+function saveOpenMonths() {
+  // Save which months are currently open so they reopen on next load
+  const open = [];
+  document.querySelectorAll('.month-body.open').forEach(el => {
+    open.push(el.id.replace('jbody-',''));
+  });
+  localStorage.setItem('forex_journal_open', JSON.stringify(open));
+}
+
 function loadJournal() {
   const rt = localStorage.getItem('forex_journal_trades');
   const rn = localStorage.getItem('forex_journal_notes');
   if(rt) try { journalTrades = JSON.parse(rt); } catch(e) {}
   if(rn) try { journalNotes  = JSON.parse(rn);  } catch(e) {}
-  // Set default month/year to current
   const now = new Date();
   document.getElementById('journalMonth').value = now.getMonth() + 1;
   document.getElementById('journalYear').value  = now.getFullYear();
@@ -1903,10 +1915,9 @@ function addTradeToJournal() {
   journalTrades[key].push({ pair:'', direction:'Bullish', result:'Win', pl:'' });
   saveJournal();
   renderJournal();
-  // Auto-open the month we just added to
   setTimeout(() => {
     const body = document.getElementById('jbody-' + key);
-    if(body) body.classList.add('open');
+    if(body) { body.classList.add('open'); saveOpenMonths(); }
   }, 50);
 }
 
@@ -1914,14 +1925,17 @@ function updateJournalTrade(key, i, field, val) {
   if(journalTrades[key] && journalTrades[key][i]) {
     journalTrades[key][i][field] = val;
     saveJournal();
-    if(field === 'result' || field === 'pl') renderJournalMonthHeader(key);
+    renderJournalMonthHeader(key); // always re-render chips after any field update
   }
 }
 
 function deleteJournalTrade(key, i) {
   journalTrades[key].splice(i, 1);
   saveJournal();
+  // Remember open states before re-render
+  const openKeys = getOpenKeys();
   renderJournal();
+  restoreOpenKeys(openKeys);
 }
 
 function saveJournalNote(key, val) {
@@ -1929,13 +1943,29 @@ function saveJournalNote(key, val) {
   saveJournal();
 }
 
+function getOpenKeys() {
+  const open = [];
+  document.querySelectorAll('.month-body.open').forEach(el => {
+    open.push(el.id.replace('jbody-',''));
+  });
+  return open;
+}
+
+function restoreOpenKeys(openKeys) {
+  openKeys.forEach(key => {
+    const body = document.getElementById('jbody-' + key);
+    if(body) body.classList.add('open');
+  });
+  saveOpenMonths();
+}
+
 function renderJournalMonthHeader(key) {
   const trades = journalTrades[key] || [];
-  const wins   = trades.filter(t => t.result === 'Win').length;
-  const losses = trades.filter(t => t.result === 'Loss').length;
+  const wins    = trades.filter(t => t.result === 'Win').length;
+  const losses  = trades.filter(t => t.result === 'Loss').length;
   const totalPL = trades.reduce((s, t) => s + (parseFloat(t.pl) || 0), 0);
-  const plStr = `R ${totalPL.toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
-  const chips = document.getElementById('jchips-' + key);
+  const plStr   = `R ${totalPL.toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  const chips   = document.getElementById('jchips-' + key);
   if(chips) chips.innerHTML = `
     <span class="mchip mchip-win">${wins}W</span>
     <span class="mchip mchip-loss">${losses}L</span>
@@ -1947,12 +1977,19 @@ function renderJournal() {
   const container = document.getElementById('journalContainer');
   container.innerHTML = '';
 
-  // Group keys by year
   const allKeys = Object.keys(journalTrades).filter(k => journalTrades[k].length > 0 || journalNotes[k]);
   if(allKeys.length === 0) {
     container.innerHTML = `<div class="empty">No trades recorded yet. Select a month and year above and click + Add trade.</div>`;
     return;
   }
+
+  // Load persisted open state
+  let savedOpen = [];
+  try { savedOpen = JSON.parse(localStorage.getItem('forex_journal_open') || '[]'); } catch(e) {}
+  // Also default-open the current month
+  const now = new Date();
+  const currentKey = journalKey(now.getFullYear(), now.getMonth() + 1);
+  if(!savedOpen.includes(currentKey) && allKeys.includes(currentKey)) savedOpen.push(currentKey);
 
   const byYear = {};
   allKeys.forEach(k => {
@@ -1970,8 +2007,9 @@ function renderJournal() {
       return parseInt(mb) - parseInt(ma);
     }).forEach(key => {
       const [y, m] = key.split('-');
-      const trades = journalTrades[key] || [];
-      const note   = journalNotes[key]  || '';
+      const trades  = journalTrades[key] || [];
+      const note    = journalNotes[key]  || '';
+      const isOpen  = savedOpen.includes(key);
 
       const block = document.createElement('div'); block.className = 'month-block';
       block.innerHTML = `
@@ -1979,12 +2017,7 @@ function renderJournal() {
           <div class="month-title">${MONTH_NAMES[parseInt(m)]} ${y}</div>
           <div class="month-summary-chips" id="jchips-${key}"></div>
         </div>
-        <div class="month-body" id="jbody-${key}">
-          <div class="add-trade-row" style="margin-bottom:1rem">
-            <div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);grid-column:1/-1">
-              Trades for ${MONTH_NAMES[parseInt(m)]} ${y}
-            </div>
-          </div>
+        <div class="month-body ${isOpen ? 'open' : ''}" id="jbody-${key}">
           <div class="trade-table-wrap">
             <table class="trade-table">
               <thead><tr><th>Pair</th><th>Direction</th><th>Result</th><th>P&L (ZAR)</th><th></th></tr></thead>
@@ -1998,12 +2031,13 @@ function renderJournal() {
         </div>`;
       yg.appendChild(block);
 
-      // Render trades
+      // Render trades into tbody
       const tbody = block.querySelector(`#jtbody-${key}`);
       trades.forEach((t, i) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td><input class="trade-input" value="${t.pair||''}" placeholder="EUR/USD" style="width:90px" onchange="updateJournalTrade('${key}',${i},'pair',this.value)"/></td>
+          <td><input class="trade-input" value="${t.pair||''}" placeholder="EUR/USD" style="width:90px"
+            onchange="updateJournalTrade('${key}',${i},'pair',this.value)"/></td>
           <td><select class="trade-select" onchange="updateJournalTrade('${key}',${i},'direction',this.value)">
             <option ${t.direction==='Bullish'?'selected':''}>Bullish</option>
             <option ${t.direction==='Bearish'?'selected':''}>Bearish</option>
@@ -2018,6 +2052,7 @@ function renderJournal() {
         tbody.appendChild(tr);
       });
 
+      // Always render chips immediately after building the block
       renderJournalMonthHeader(key);
     });
 
@@ -2027,7 +2062,7 @@ function renderJournal() {
 
 function toggleMonthBody(key) {
   const body = document.getElementById('jbody-' + key);
-  if(body) body.classList.toggle('open');
+  if(body) { body.classList.toggle('open'); saveOpenMonths(); }
 }
 
 // ══════════════════════════════════════════════════════
@@ -2107,8 +2142,8 @@ function calcHundredStats() {
   const pairArr = Object.entries(pairMap).map(([pair,d]) => ({ pair, total:d.total, count:d.count }));
   pairArr.sort((a,b) => b.total - a.total);
 
-  const best  = pairArr.slice(0,5);
-  const worst = pairArr.slice(-5).reverse();
+  const best  = pairArr.filter(p => p.total > 0).slice(0, 5);
+  const worst = pairArr.filter(p => p.total < 0).sort((a,b) => a.total - b.total).slice(0, 5);
 
   const pairHtml = (arr, positive) => arr.map(p => `
     <div class="pair-perf-item">
