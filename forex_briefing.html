@@ -301,7 +301,7 @@
       <button class="nav-tab investments-tab" id="tab-investments" onclick="showPage('investments',this)">💼 Investments</button>
       <button class="nav-tab journal-tab" id="tab-journal" onclick="showPage('journal',this)">📓 Trading Journal</button>
       <button class="nav-tab hundred-tab" id="tab-hundred" onclick="showPage('hundred',this)">🎯 100 Trades</button>
-      <button class="nav-tab settings-tab" id="tab-settings" onclick="showPage('settings',this)">⚙️ Settings</button>
+      <button class="nav-tab settings-tab" id="tab-settings" onclick="showPage('settings',this)">⚙️</button>
     </div>
     <div class="nav-week" id="navWeek">Loading...</div>
   </div>
@@ -436,17 +436,17 @@
 <!-- STRATEGY PLAN PAGE -->
 <div class="page" id="page-strategy">
   <div class="page-title">Strategy Plan</div>
-  <div class="page-sub">Your trading framework · Edits save automatically</div>
+  <div class="page-sub">Your trading framework</div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
     <div class="strategy-section" style="margin-bottom:0">
       <div class="strategy-section-title">Purpose</div>
-      <textarea class="editable-area" id="strat-purpose" placeholder="Why do you trade? What is your purpose..." rows="3" style="min-height:100px" oninput="saveStrategy()"></textarea>
+      <textarea class="editable-area" id="strat-purpose" placeholder="Why do you trade? What is your purpose..." rows="9" style="min-height:100px" oninput="saveStrategy()"></textarea>
       <div class="save-indicator" id="si-purpose">Saved ✓</div>
     </div>
     <div class="strategy-section" style="margin-bottom:0">
       <div class="strategy-section-title">Goal</div>
-      <textarea class="editable-area" id="strat-goal" placeholder="What are your trading goals — financial targets, timeline, milestones..." rows="3" style="min-height:100px" oninput="saveStrategy()"></textarea>
+      <textarea class="editable-area" id="strat-goal" placeholder="What are your trading goals — financial targets, timeline, milestones..." rows="4" style="min-height:100px" oninput="saveStrategy()"></textarea>
       <div class="save-indicator" id="si-goal">Saved ✓</div>
     </div>
   </div>
@@ -454,12 +454,12 @@
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
     <div class="strategy-section" style="margin-bottom:0">
       <div class="strategy-section-title">Where I Trade</div>
-      <textarea class="editable-area" id="strat-where" placeholder="Markets, pairs, sessions, platforms you use..." rows="8" oninput="saveStrategy()"></textarea>
+      <textarea class="editable-area" id="strat-where" placeholder="Markets, pairs, sessions, platforms you use..." rows="4" oninput="saveStrategy()"></textarea>
       <div class="save-indicator" id="si-where">Saved ✓</div>
     </div>
     <div class="strategy-section" style="margin-bottom:0">
       <div class="strategy-section-title">How I Trade</div>
-      <textarea class="editable-area" id="strat-how" placeholder="Your full strategy framework — trend identification, AOI, entry, SL, TP, risk management..." rows="8" oninput="saveStrategy()"></textarea>
+      <textarea class="editable-area" id="strat-how" placeholder="Your full strategy framework — trend identification, AOI, entry, SL, TP, risk management..." rows="9" oninput="saveStrategy()"></textarea>
       <div class="save-indicator" id="si-how">Saved ✓</div>
     </div>
   </div>
@@ -468,7 +468,7 @@
 <!-- KEY PRINCIPLES PAGE -->
 <div class="page" id="page-principles">
   <div class="page-title">Key Principles</div>
-  <div class="page-sub">Your core trading rules · Read these before every trading week</div>
+  <div class="page-sub">Your core trading rules</div>
 
   <div class="principles-list" id="principlesList"></div>
 
@@ -482,7 +482,7 @@
 <!-- INVESTMENTS PAGE -->
 <div class="page" id="page-investments">
   <div class="page-title">Investment Journal</div>
-  <div class="page-sub">Track your long term investments · P&L auto-calculated</div>
+  <div class="page-sub">Track your long term investments</div>
 
   <div class="inv-summary">
     <div class="inv-stat"><div class="inv-stat-label">Total invested</div><div class="inv-stat-val blue" id="invTotalIn">R 0</div></div>
@@ -516,7 +516,7 @@
 <!-- TRADING JOURNAL PAGE -->
 <div class="page" id="page-journal">
   <div class="page-title">Trading Journal</div>
-  <div class="page-sub">Swing trade log · Organised by year and month · All amounts in ZAR</div>
+  <div class="page-sub">Swing trade log</div>
 
   <div class="month-controls">
     <select class="month-select" id="journalMonth">
@@ -538,7 +538,7 @@
 <!-- 100 TRADES PAGE -->
 <div class="page" id="page-hundred">
   <div class="page-title">100 Trades Analysis</div>
-  <div class="page-sub">Record up to 100 swing trades to analyse your strategy edge · All amounts in ZAR</div>
+  <div class="page-sub">Record 100 swing trades to analyse your strategy edge</div>
 
   <div style="margin-bottom:8px">
     <div class="progress-trades"><div class="progress-trades-fill" id="tradeProgressFill"></div></div>
