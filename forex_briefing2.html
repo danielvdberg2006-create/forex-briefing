@@ -1333,90 +1333,108 @@ async function fetchCandles(pair, interval, size) {
   }));
 }
 
-// ── TREND DETECTION — Exact market structure tracking ──
+// ── TREND DETECTION — Backwards seed from most recent price ──
 //
-// Bullish continuation : close ABOVE current HH → new HH confirmed
-//                        lowest low between old HH idx and new HH idx = new HL
-// Bearish continuation : close BELOW current LL → new LL confirmed
-//                        highest high between old LL idx and new LL idx = new LH
-// CHoCH bear→bull      : close ABOVE current LH → trend flips bullish
-//                        break candle high = new HH
-//                        lowest low between old LH idx and break idx = new HL
-// CHoCH bull→bear      : close BELOW current HL → trend flips bearish
-//                        break candle low = new LL
-//                        highest high between old HL idx and break idx = new LH
-// Between structure pts : absolutely nothing changes
-// Only CLOSES trigger changes — never wicks
+// Strategy:
+// 1. Start at the most recent candle and walk BACKWARDS
+// 2. Find the most recent confirmed swing high and swing low
+//    (a swing high = higher than 2 candles on each side, confirmed by close)
+// 3. Whichever is more recent determines current trend:
+//    - Most recent point is a swing HIGH → trend is BULLISH
+//      keyHigh = that swing high, keyLow = lowest low between swing low and swing high
+//    - Most recent point is a swing LOW → trend is BEARISH
+//      keyLow = that swing low, keyHigh = highest high between swing high and swing low
+// 4. Walk FORWARD from those seed points to the present applying exact rules:
+//    Bullish: close > keyHigh → new HH (keyLow = lowest low since last keyHighIdx)
+//             close < keyLow  → CHoCH bearish (keyHigh = highest high since last keyLowIdx)
+//    Bearish: close < keyLow  → new LL (keyHigh = highest high since last keyLowIdx)
+//             close > keyHigh → CHoCH bullish (keyLow = lowest low since last keyHighIdx)
+// 5. Walk back up to 2 years (full dataset) if needed to find valid swing points
 
 function detectTrendStructure(candles) {
-  if(!candles || candles.length < 10) return { trend:'neutral', keyHigh:null, keyLow:null };
+  if(!candles || candles.length < 6) return { trend:'neutral', keyHigh:null, keyLow:null };
 
-  // ── Step 1: Find the most recent significant swing points ──
-  // Rather than seeding from the absolute extremes of the full dataset
-  // (which can be years old and cause the forward walk to lose track),
-  // we find the most recent swing high and swing low within the last
-  // 20% of candles to establish a recent anchor point, then walk forward.
-  //
-  // A swing high = candle whose high is higher than the 3 candles either side
-  // A swing low  = candle whose low  is lower  than the 3 candles either side
+  const n = candles.length;
 
-  const lookback = Math.max(20, Math.floor(candles.length * 0.2));
-  const recentStart = candles.length - lookback;
+  // ── Step 1: Walk backwards from most recent candle to find
+  //    the two most recent confirmed swing high and swing low ──
+  // We require 2 candles on each side to confirm a swing point
+  // Start from n-3 so we have at least 2 candles after the pivot
 
-  // Find most recent swing high and swing low in the recent window
-  let recentSwingHighIdx = -1, recentSwingLowIdx = -1;
-  for(let i = candles.length - 4; i >= recentStart; i--) {
-    if(recentSwingHighIdx === -1 &&
-       candles[i].high > candles[i-1].high && candles[i].high > candles[i-2].high &&
-       candles[i].high > candles[i+1].high && candles[i].high > candles[i+2].high) {
-      recentSwingHighIdx = i;
+  let swingHighIdx = -1;
+  let swingLowIdx  = -1;
+
+  for(let i = n - 3; i >= 2; i--) {
+    // Confirmed swing HIGH: close-based confirmation
+    // High must be higher than 2 candles on each side
+    if(swingHighIdx === -1 &&
+       candles[i].high > candles[i-1].high &&
+       candles[i].high > candles[i-2].high &&
+       candles[i].high > candles[i+1].high &&
+       candles[i].high > candles[i+2].high) {
+      swingHighIdx = i;
     }
-    if(recentSwingLowIdx === -1 &&
-       candles[i].low < candles[i-1].low && candles[i].low < candles[i-2].low &&
-       candles[i].low < candles[i+1].low && candles[i].low < candles[i+2].low) {
-      recentSwingLowIdx = i;
+
+    // Confirmed swing LOW: low must be lower than 2 candles on each side
+    if(swingLowIdx === -1 &&
+       candles[i].low < candles[i-1].low &&
+       candles[i].low < candles[i-2].low &&
+       candles[i].low < candles[i+1].low &&
+       candles[i].low < candles[i+2].low) {
+      swingLowIdx = i;
     }
-    if(recentSwingHighIdx !== -1 && recentSwingLowIdx !== -1) break;
+
+    // Stop as soon as we have both — we only need the two most recent
+    if(swingHighIdx !== -1 && swingLowIdx !== -1) break;
   }
 
-  // Fallback to absolute extremes if no swing points found in recent window
-  if(recentSwingHighIdx === -1 || recentSwingLowIdx === -1) {
-    for(let i = 1; i < candles.length; i++) {
-      if(recentSwingHighIdx === -1 || candles[i].high > candles[recentSwingHighIdx].high) recentSwingHighIdx = i;
-      if(recentSwingLowIdx  === -1 || candles[i].low  < candles[recentSwingLowIdx].low)  recentSwingLowIdx  = i;
+  // ── Fallback: if we couldn't find both swing points,
+  //    use the highest high and lowest low in the dataset ──
+  if(swingHighIdx === -1) {
+    swingHighIdx = 0;
+    for(let i = 1; i < n; i++) {
+      if(candles[i].high > candles[swingHighIdx].high) swingHighIdx = i;
+    }
+  }
+  if(swingLowIdx === -1) {
+    swingLowIdx = 0;
+    for(let i = 1; i < n; i++) {
+      if(candles[i].low < candles[swingLowIdx].low) swingLowIdx = i;
     }
   }
 
-  // ── Step 2: Seed from the most recent swing points ──
-  // Now walk backwards from the more recent of the two swing points
-  // to find the broader structure context — specifically the confirmed
-  // HH/HL or LH/LL that currently applies
-  //
-  // Seed: whichever swing point is more recent tells us current trend
+  // ── Step 2: Seed trend from which swing point is more recent ──
   let trend, keyHigh, keyLow, keyHighIdx, keyLowIdx;
 
-  if(recentSwingHighIdx > recentSwingLowIdx) {
-    // Most recent significant point is a high → price just pushed up → bullish
+  if(swingHighIdx > swingLowIdx) {
+    // Most recent confirmed point is a HIGH → currently BULLISH
+    // keyHigh = that swing high
+    // keyLow  = lowest low between the swing low and the swing high (the HL)
     trend      = 'bullish';
-    keyHigh    = candles[recentSwingHighIdx].high;
-    keyHighIdx = recentSwingHighIdx;
-    // HL = lowest low between the swing low and the swing high
-    keyLow     = Math.min(...candles.slice(recentSwingLowIdx, recentSwingHighIdx + 1).map(c => c.low));
-    keyLowIdx  = recentSwingLowIdx;
+    keyHigh    = candles[swingHighIdx].high;
+    keyHighIdx = swingHighIdx;
+    const sliceStart = Math.min(swingLowIdx, swingHighIdx);
+    const sliceEnd   = Math.max(swingLowIdx, swingHighIdx) + 1;
+    keyLow     = Math.min(...candles.slice(sliceStart, sliceEnd).map(c => c.low));
+    keyLowIdx  = swingLowIdx;
   } else {
-    // Most recent significant point is a low → price just pushed down → bearish
+    // Most recent confirmed point is a LOW → currently BEARISH
+    // keyLow  = that swing low
+    // keyHigh = highest high between the swing high and the swing low (the LH)
     trend      = 'bearish';
-    keyLow     = candles[recentSwingLowIdx].low;
-    keyLowIdx  = recentSwingLowIdx;
-    // LH = highest high between the swing high and the swing low
-    keyHigh    = Math.max(...candles.slice(recentSwingHighIdx, recentSwingLowIdx + 1).map(c => c.high));
-    keyHighIdx = recentSwingHighIdx;
+    keyLow     = candles[swingLowIdx].low;
+    keyLowIdx  = swingLowIdx;
+    const sliceStart = Math.min(swingHighIdx, swingLowIdx);
+    const sliceEnd   = Math.max(swingHighIdx, swingLowIdx) + 1;
+    keyHigh    = Math.max(...candles.slice(sliceStart, sliceEnd).map(c => c.high));
+    keyHighIdx = swingHighIdx;
   }
 
-  // ── Step 3: Walk forward from after the seed swing points ──
-  const startIdx = Math.max(recentSwingHighIdx, recentSwingLowIdx) + 1;
+  // ── Step 3: Walk FORWARD from after the seed points to present ──
+  // Apply exact structure rules on every candle from seed onwards
+  const startIdx = Math.max(swingHighIdx, swingLowIdx) + 1;
 
-  for(let i = startIdx; i < candles.length; i++) {
+  for(let i = startIdx; i < n; i++) {
     const close = candles[i].close;
     const high  = candles[i].high;
     const low   = candles[i].low;
@@ -1424,6 +1442,8 @@ function detectTrendStructure(candles) {
     if(trend === 'bullish') {
       if(close < keyLow) {
         // ── CHoCH: bullish → bearish ──
+        // New LL = this candle's low
+        // New LH = highest high between keyLowIdx and now
         const newLH = Math.max(...candles.slice(keyLowIdx, i + 1).map(c => c.high));
         trend      = 'bearish';
         keyLow     = low;
@@ -1432,17 +1452,20 @@ function detectTrendStructure(candles) {
         keyHighIdx = i;
       } else if(close > keyHigh) {
         // ── New HH confirmed ──
+        // New HL = lowest low between keyHighIdx and now
         const newHL = Math.min(...candles.slice(keyHighIdx, i + 1).map(c => c.low));
         keyHigh    = high;
         keyLow     = newHL;
         keyHighIdx = i;
         keyLowIdx  = i;
       }
-      // else: between HH and HL → no change
+      // else: price between HH and HL → no change
 
     } else {
       if(close > keyHigh) {
         // ── CHoCH: bearish → bullish ──
+        // New HH = this candle's high
+        // New HL = lowest low between keyHighIdx and now
         const newHL = Math.min(...candles.slice(keyHighIdx, i + 1).map(c => c.low));
         trend      = 'bullish';
         keyHigh    = high;
@@ -1451,13 +1474,14 @@ function detectTrendStructure(candles) {
         keyLowIdx  = i;
       } else if(close < keyLow) {
         // ── New LL confirmed ──
+        // New LH = highest high between keyLowIdx and now
         const newLH = Math.max(...candles.slice(keyLowIdx, i + 1).map(c => c.high));
         keyLow     = low;
         keyHigh    = newLH;
         keyLowIdx  = i;
         keyHighIdx = i;
       }
-      // else: between LH and LL → no change
+      // else: price between LH and LL → no change
     }
   }
 
