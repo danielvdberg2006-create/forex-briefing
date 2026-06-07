@@ -2609,7 +2609,7 @@ function renderPerformance() {
       <div class="month-perf-row"><span>Trades</span><span>${d.trades}</span></div>
       <div class="month-perf-row"><span>Win rate</span><span>${wr2}</span></div>
       <div class="month-perf-row"><span>Wins / Losses</span><span style="color:var(--bull)">${d.wins}W</span> / <span style="color:var(--bear)">${d.losses}L</span></div>
-      <div class="month-perf-row"><span>P&L</span><span style="color:${d.pl>=0?'var(--bull)':'var(--bear)';fontWeight:700}">${fmt(d.pl)}</span></div>
+      <div class="month-perf-row"><span>P&L</span><span style="color:${d.pl>=0?'var(--bull)':'var(--bear)'};font-weight:700">${fmt(d.pl)}</span></div>
     </div>`;
   }).join('');
 }
