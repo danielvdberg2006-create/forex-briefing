@@ -514,8 +514,10 @@
   <div class="section">
     <div class="section-title" style="margin-bottom:1rem">Strategy rules</div>
     <div class="info-note" style="margin:0">
-      <span>Trend:</span> Weekly / Daily / 4H at least 2 align<br><br>
+      <span>Trend:</span> Strong Weekly / Daily / · 4H At least 2 align · 50 EMA support<br><br>
       <span>AOI:</span> Weekly + Daily analysed separately · Min 3 touches · A touch = market structure point whose body closes within or at the zone and rejects back out · Max 60 pips wide · W+D zones within 30 pips combined into confluence zone · All zones within largest trend structure shown. Max lookback: <span>2 years Daily · 2 years Weekly</span>.<br><br>
+	  <span>50 EMA:</span> EMA Confirmation · Price above 50 EMA (bullish support) or below 50 EMA (bearish resistance) · Trend aligns
+	  <br><br>
       <span>Entry:</span> H&S or inverted H&S at AOI · Break and retest of structure · Engulfing confirmation on 4H / 2H · SL 5–10 pips within AOI · TP at minimum 1:2 risk to reward<br><br>
       <span>Rules:</span> Trade Mon–Thu only · London / NY session 08:00–17:30 GMT · Max 3 trades/week · Only trade with trend · Set and forget! · If you can't explain the trade, you don't have one<br><br>
       <span>Data:</span> Powered by Twelve Data · Results persist until end of Friday each week
@@ -688,34 +690,29 @@
   <div class="page-sub">All boxes must be checked before taking a trade</div>
   <div class="checklist-card">
     <div class="checklist-title">Pre-Trade Checklist</div>
-    <div class="checklist-sub">Check each condition — only take the trade when all 4 are confirmed</div>
     <div class="checklist-items" id="checklistItems">
       <div class="checklist-item" id="ci-trend" onclick="toggleCheck('trend')">
         <div class="check-box" id="cb-trend"></div>
         <div>
           <div class="check-item-label">Trend Identified</div>
-          <div class="check-item-desc">W / D / 4H all aligned in the same direction · HH+HL or LH+LL confirmed</div>
         </div>
       </div>
       <div class="checklist-item" id="ci-aoi" onclick="toggleCheck('aoi')">
         <div class="check-box" id="cb-aoi"></div>
         <div>
           <div class="check-item-label">Area of Interest (AOI)</div>
-          <div class="check-item-desc">Valid AOI identified on W/D · Min 3 touches · Max 60 pips · Within trend structure</div>
         </div>
       </div>
       <div class="checklist-item" id="ci-ema" onclick="toggleCheck('ema')">
         <div class="check-box" id="cb-ema"></div>
         <div>
-          <div class="check-item-label">EMA Confirmation</div>
-          <div class="check-item-desc">Price above EMA (bullish support) or below EMA (bearish resistance) · Trend aligned</div>
+          <div class="check-item-label">50 EMA Confirmation</div>
         </div>
       </div>
       <div class="checklist-item" id="ci-entry" onclick="toggleCheck('entry')">
         <div class="check-box" id="cb-entry"></div>
         <div>
           <div class="check-item-label">Entry Signal</div>
-          <div class="check-item-desc">Engulfing candle / rejection at AOI on 4H, 2H or 1H · London session · Mon–Thu only</div>
         </div>
       </div>
     </div>
@@ -729,7 +726,7 @@
 <!-- PERFORMANCE DASHBOARD PAGE -->
 <div class="page" id="page-performance">
   <div class="page-title">Performance Dashboard</div>
-  <div class="page-sub">Your trading statistics by year · Pulled from your Trading Journal</div>
+  <div class="page-sub">Your trading statistics by year</div>
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:2rem;flex-wrap:wrap">
     <select class="perf-year-select" id="perfYearSelect" onchange="renderPerformance()" style="margin-bottom:0"></select>
     <span style="font-family:var(--font-mono);font-size:12px;color:var(--muted)">Select year to view stats</span>
@@ -751,7 +748,7 @@
 <!-- RISK CALCULATOR PAGE -->
 <div class="page" id="page-risk">
   <div class="page-title">Risk Calculator</div>
-  <div class="page-sub">Calculate your lot size based on account balance, risk % and stop loss · Uses live rates via your API key</div>
+  <div class="page-sub">Calculate your lot size · Uses live rates via your API key</div>
   <div class="risk-card">
     <div class="risk-grid">
       <div class="risk-field">
