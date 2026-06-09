@@ -801,6 +801,10 @@
       </div>
       <div class="risk-note" id="riskNote"></div>
     </div>
+    <div style="display:flex;gap:10px;margin-top:0.5rem">
+      <button class="btn-calc" style="flex:1" onclick="calcRisk()">Calculate</button>
+      <button onclick="clearRiskCalc()" style="background:transparent;border:0.5px solid var(--border2);color:var(--muted);font-family:var(--font-mono);font-size:12px;padding:13px 18px;border-radius:10px;cursor:pointer;white-space:nowrap">Clear</button>
+    </div>
     <div id="riskError" style="font-family:var(--font-mono);font-size:12px;color:var(--bear);margin-top:1rem;display:none"></div>
   </div>
 </div>
@@ -1333,159 +1337,206 @@ async function fetchCandles(pair, interval, size) {
   }));
 }
 
-// ── TREND DETECTION — Backwards seed from most recent price ──
+// ── TREND DETECTION — Full pivot sequence, dominant structure ──
 //
-// Strategy:
-// 1. Start at the most recent candle and walk BACKWARDS
-// 2. Find the most recent confirmed swing high and swing low
-//    (a swing high = higher than 2 candles on each side, confirmed by close)
-// 3. Whichever is more recent determines current trend:
-//    - Most recent point is a swing HIGH → trend is BULLISH
-//      keyHigh = that swing high, keyLow = lowest low between swing low and swing high
-//    - Most recent point is a swing LOW → trend is BEARISH
-//      keyLow = that swing low, keyHigh = highest high between swing high and swing low
-// 4. Walk FORWARD from those seed points to the present applying exact rules:
-//    Bullish: close > keyHigh → new HH (keyLow = lowest low since last keyHighIdx)
-//             close < keyLow  → CHoCH bearish (keyHigh = highest high since last keyLowIdx)
-//    Bearish: close < keyLow  → new LL (keyHigh = highest high since last keyLowIdx)
-//             close > keyHigh → CHoCH bullish (keyLow = lowest low since last keyHighIdx)
-// 5. Walk back up to 2 years (full dataset) if needed to find valid swing points
+// Approach:
+// 1. Scan ALL candles (up to 2 years) for swing highs and swing lows
+// 2. Build a clean alternating pivot sequence (H, L, H, L...) — if two
+//    consecutive highs appear, keep only the higher one; same for lows
+// 3. Working backwards from the most recent pivot, find the dominant
+//    trend structure — the outermost unbroken HH+HL or LL+LH
+// 4. A structure pair is "dominant" if no larger structure contains it
+//    within the 2-year lookback
+// 5. The most recent confirmed keyHigh and keyLow come from that structure
+//
+// A swing point requires the candle high/low to be the extreme vs
+// 2 candles on each side (confirmed structure point, not noise)
 
 function detectTrendStructure(candles) {
-  if(!candles || candles.length < 6) return { trend:'neutral', keyHigh:null, keyLow:null };
+  if(!candles || candles.length < 10) return { trend:'neutral', keyHigh:null, keyLow:null };
 
   const n = candles.length;
 
-  // ── Step 1: Walk backwards from most recent candle to find
-  //    the two most recent confirmed swing high and swing low ──
-  // We require 2 candles on each side to confirm a swing point
-  // Start from n-3 so we have at least 2 candles after the pivot
+  // ── Step 1: Find all swing highs and swing lows ──
+  // A swing high: higher than 2 candles on each side
+  // A swing low:  lower  than 2 candles on each side
+  const pivots = []; // { idx, type:'H'|'L', price }
 
-  let swingHighIdx = -1;
-  let swingLowIdx  = -1;
-
-  for(let i = n - 3; i >= 2; i--) {
-    // Confirmed swing HIGH: close-based confirmation
-    // High must be higher than 2 candles on each side
-    if(swingHighIdx === -1 &&
-       candles[i].high > candles[i-1].high &&
-       candles[i].high > candles[i-2].high &&
-       candles[i].high > candles[i+1].high &&
-       candles[i].high > candles[i+2].high) {
-      swingHighIdx = i;
-    }
-
-    // Confirmed swing LOW: low must be lower than 2 candles on each side
-    if(swingLowIdx === -1 &&
-       candles[i].low < candles[i-1].low &&
-       candles[i].low < candles[i-2].low &&
-       candles[i].low < candles[i+1].low &&
-       candles[i].low < candles[i+2].low) {
-      swingLowIdx = i;
-    }
-
-    // Stop as soon as we have both — we only need the two most recent
-    if(swingHighIdx !== -1 && swingLowIdx !== -1) break;
+  for(let i = 2; i < n - 2; i++) {
+    const isHigh = candles[i].high > candles[i-1].high &&
+                   candles[i].high > candles[i-2].high &&
+                   candles[i].high > candles[i+1].high &&
+                   candles[i].high > candles[i+2].high;
+    const isLow  = candles[i].low  < candles[i-1].low  &&
+                   candles[i].low  < candles[i-2].low  &&
+                   candles[i].low  < candles[i+1].low  &&
+                   candles[i].low  < candles[i+2].low;
+    if(isHigh) pivots.push({ idx:i, type:'H', price: candles[i].high });
+    if(isLow)  pivots.push({ idx:i, type:'L', price: candles[i].low  });
   }
 
-  // ── Fallback: if we couldn't find both swing points,
-  //    use the highest high and lowest low in the dataset ──
-  if(swingHighIdx === -1) {
-    swingHighIdx = 0;
-    for(let i = 1; i < n; i++) {
-      if(candles[i].high > candles[swingHighIdx].high) swingHighIdx = i;
-    }
-  }
-  if(swingLowIdx === -1) {
-    swingLowIdx = 0;
-    for(let i = 1; i < n; i++) {
-      if(candles[i].low < candles[swingLowIdx].low) swingLowIdx = i;
-    }
+  if(pivots.length < 2) {
+    // Not enough pivots — fall back to simple high/low
+    const highIdx = candles.reduce((best,c,i) => c.high > candles[best].high ? i : best, 0);
+    const lowIdx  = candles.reduce((best,c,i) => c.low  < candles[best].low  ? i : best, 0);
+    const trend   = highIdx > lowIdx ? 'bullish' : 'bearish';
+    return { trend, keyHigh: candles[highIdx].high, keyLow: candles[lowIdx].low };
   }
 
-  // ── Step 2: Seed trend from which swing point is more recent ──
-  let trend, keyHigh, keyLow, keyHighIdx, keyLowIdx;
-
-  if(swingHighIdx > swingLowIdx) {
-    // Most recent confirmed point is a HIGH → currently BULLISH
-    // keyHigh = that swing high
-    // keyLow  = lowest low between the swing low and the swing high (the HL)
-    trend      = 'bullish';
-    keyHigh    = candles[swingHighIdx].high;
-    keyHighIdx = swingHighIdx;
-    const sliceStart = Math.min(swingLowIdx, swingHighIdx);
-    const sliceEnd   = Math.max(swingLowIdx, swingHighIdx) + 1;
-    keyLow     = Math.min(...candles.slice(sliceStart, sliceEnd).map(c => c.low));
-    keyLowIdx  = swingLowIdx;
-  } else {
-    // Most recent confirmed point is a LOW → currently BEARISH
-    // keyLow  = that swing low
-    // keyHigh = highest high between the swing high and the swing low (the LH)
-    trend      = 'bearish';
-    keyLow     = candles[swingLowIdx].low;
-    keyLowIdx  = swingLowIdx;
-    const sliceStart = Math.min(swingHighIdx, swingLowIdx);
-    const sliceEnd   = Math.max(swingHighIdx, swingLowIdx) + 1;
-    keyHigh    = Math.max(...candles.slice(sliceStart, sliceEnd).map(c => c.high));
-    keyHighIdx = swingHighIdx;
-  }
-
-  // ── Step 3: Walk FORWARD from after the seed points to present ──
-  // Apply exact structure rules on every candle from seed onwards
-  const startIdx = Math.max(swingHighIdx, swingLowIdx) + 1;
-
-  for(let i = startIdx; i < n; i++) {
-    const close = candles[i].close;
-    const high  = candles[i].high;
-    const low   = candles[i].low;
-
-    if(trend === 'bullish') {
-      if(close < keyLow) {
-        // ── CHoCH: bullish → bearish ──
-        // New LL = this candle's low
-        // New LH = highest high between keyLowIdx and now
-        const newLH = Math.max(...candles.slice(keyLowIdx, i + 1).map(c => c.high));
-        trend      = 'bearish';
-        keyLow     = low;
-        keyHigh    = newLH;
-        keyLowIdx  = i;
-        keyHighIdx = i;
-      } else if(close > keyHigh) {
-        // ── New HH confirmed ──
-        // New HL = lowest low between keyHighIdx and now
-        const newHL = Math.min(...candles.slice(keyHighIdx, i + 1).map(c => c.low));
-        keyHigh    = high;
-        keyLow     = newHL;
-        keyHighIdx = i;
-        keyLowIdx  = i;
-      }
-      // else: price between HH and HL → no change
-
+  // ── Step 2: Clean the pivot sequence ──
+  // Remove consecutive same-type pivots — keep only the most extreme
+  // This gives us a clean alternating H, L, H, L sequence
+  const clean = [pivots[0]];
+  for(let i = 1; i < pivots.length; i++) {
+    const last = clean[clean.length - 1];
+    if(pivots[i].type === last.type) {
+      // Same type — keep the more extreme one
+      if(pivots[i].type === 'H' && pivots[i].price > last.price) clean[clean.length-1] = pivots[i];
+      if(pivots[i].type === 'L' && pivots[i].price < last.price) clean[clean.length-1] = pivots[i];
     } else {
-      if(close > keyHigh) {
-        // ── CHoCH: bearish → bullish ──
-        // New HH = this candle's high
-        // New HL = lowest low between keyHighIdx and now
-        const newHL = Math.min(...candles.slice(keyHighIdx, i + 1).map(c => c.low));
-        trend      = 'bullish';
-        keyHigh    = high;
-        keyLow     = newHL;
-        keyHighIdx = i;
-        keyLowIdx  = i;
-      } else if(close < keyLow) {
-        // ── New LL confirmed ──
-        // New LH = highest high between keyLowIdx and now
-        const newLH = Math.max(...candles.slice(keyLowIdx, i + 1).map(c => c.high));
-        keyLow     = low;
-        keyHigh    = newLH;
-        keyLowIdx  = i;
-        keyHighIdx = i;
-      }
-      // else: price between LH and LL → no change
+      clean.push(pivots[i]);
     }
   }
 
-  return { trend, keyHigh, keyLow };
+  if(clean.length < 2) {
+    const trend = clean[0].type === 'H' ? 'bullish' : 'bearish';
+    return { trend, keyHigh: clean[0].type==='H' ? clean[0].price : null, keyLow: clean[0].type==='L' ? clean[0].price : null };
+  }
+
+  // ── Step 3: Working backwards, find the dominant trend structure ──
+  //
+  // Start from the most recent pivot and walk backwards through the
+  // clean sequence to identify:
+  //   - For BULLISH: find the most recent HH and its preceding HL
+  //     then check if a LARGER HH exists further back (price hasn't broken it)
+  //     The outermost unbroken HH+HL pair is the dominant structure
+  //   - For BEARISH: same logic with LL+LH
+  //
+  // The most recent pivot type tells us the current direction:
+  //   Last pivot = H → trend currently bullish (price last made a high)
+  //   Last pivot = L → trend currently bearish (price last made a low)
+
+  const last = clean[clean.length - 1];
+  const currentPrice = candles[n-1].close;
+
+  let dominantHigh = null;
+  let dominantLow  = null;
+  let trend        = last.type === 'H' ? 'bullish' : 'bearish';
+
+  if(trend === 'bullish') {
+    // Most recent pivot is a HIGH
+    // Find the most recent HIGH in the clean sequence
+    // Then find the LOW before it (the HL)
+    // Then walk further back to see if there's a larger HIGH that
+    // current price has not broken above — if so that's the dominant HH
+
+    // Find most recent H and the L before it
+    let recentHighPivot = null;
+    let recentLowPivot  = null;
+
+    for(let i = clean.length - 1; i >= 0; i--) {
+      if(!recentHighPivot && clean[i].type === 'H') {
+        recentHighPivot = clean[i];
+      }
+      if(recentHighPivot && !recentLowPivot && clean[i].type === 'L') {
+        recentLowPivot = clean[i];
+        break;
+      }
+    }
+
+    dominantHigh = recentHighPivot ? recentHighPivot.price : null;
+    dominantLow  = recentLowPivot  ? recentLowPivot.price  : null;
+
+    // Now walk further back — if there's a HIGHER high that price
+    // has not yet closed above, that becomes the dominant HH
+    // (meaning we're still in a larger bullish structure targeting that level)
+    if(recentHighPivot) {
+      for(let i = clean.indexOf(recentHighPivot) - 1; i >= 0; i--) {
+        if(clean[i].type === 'H' && clean[i].price > dominantHigh) {
+          // Larger high exists — check if current price has broken it
+          if(currentPrice < clean[i].price) {
+            // Price has NOT broken above this larger high
+            // This larger high is part of the dominant structure
+            // Find the low that corresponds to this larger structure
+            dominantHigh = clean[i].price;
+            // The HL for this larger structure = the lowest low between
+            // this larger high and the previous significant low before it
+            for(let j = i - 1; j >= 0; j--) {
+              if(clean[j].type === 'L') {
+                dominantLow = clean[j].price;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+  } else {
+    // Most recent pivot is a LOW — trend bearish
+    // Find the most recent LOW in the clean sequence
+    // Then find the HIGH before it (the LH)
+    // Walk further back to find larger LOW that price hasn't broken below
+
+    let recentLowPivot  = null;
+    let recentHighPivot = null;
+
+    for(let i = clean.length - 1; i >= 0; i--) {
+      if(!recentLowPivot && clean[i].type === 'L') {
+        recentLowPivot = clean[i];
+      }
+      if(recentLowPivot && !recentHighPivot && clean[i].type === 'H') {
+        recentHighPivot = clean[i];
+        break;
+      }
+    }
+
+    dominantLow  = recentLowPivot  ? recentLowPivot.price  : null;
+    dominantHigh = recentHighPivot ? recentHighPivot.price : null;
+
+    // Walk further back — if there's a LOWER low that price
+    // has not yet closed below, that is the dominant LL
+    if(recentLowPivot) {
+      for(let i = clean.indexOf(recentLowPivot) - 1; i >= 0; i--) {
+        if(clean[i].type === 'L' && clean[i].price < dominantLow) {
+          if(currentPrice > clean[i].price) {
+            // Price has NOT broken below this larger low
+            dominantLow = clean[i].price;
+            // The LH for this larger structure = the highest high between
+            // this larger low and the previous significant high before it
+            for(let j = i - 1; j >= 0; j--) {
+              if(clean[j].type === 'H') {
+                dominantHigh = clean[j].price;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // ── Step 4: Final validation ──
+  // If we couldn't identify proper dominant levels, fall back to
+  // the most recent confirmed pivot pair
+  if(!dominantHigh || !dominantLow) {
+    for(let i = clean.length - 1; i >= 1; i--) {
+      if(clean[i].type !== clean[i-1].type) {
+        if(clean[i].type === 'H') {
+          dominantHigh = clean[i].price;
+          dominantLow  = clean[i-1].price;
+          trend = 'bullish';
+        } else {
+          dominantLow  = clean[i].price;
+          dominantHigh = clean[i-1].price;
+          trend = 'bearish';
+        }
+        break;
+      }
+    }
+  }
+
+  return { trend, keyHigh: dominantHigh, keyLow: dominantLow };
 }
 
 // Convenience wrapper
@@ -2650,6 +2701,40 @@ function renderPerformance() {
 
 let riskRateCache = {};
 
+function saveRiskValues() {
+  const data = {
+    balance: document.getElementById('riskBalance').value,
+    pct:     document.getElementById('riskPct').value,
+    pair:    document.getElementById('riskPair').value,
+    sl:      document.getElementById('riskSL').value,
+  };
+  localStorage.setItem('forex_risk', JSON.stringify(data));
+}
+
+function loadRiskCalc() {
+  const raw = localStorage.getItem('forex_risk');
+  if(!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    if(d.balance) document.getElementById('riskBalance').value = d.balance;
+    if(d.pct)     document.getElementById('riskPct').value     = d.pct;
+    if(d.pair)    document.getElementById('riskPair').value    = d.pair;
+    if(d.sl)      document.getElementById('riskSL').value      = d.sl;
+    // Recalculate with restored values if all fields are present
+    if(d.balance && d.pct && d.pair && d.sl) calcRisk();
+  } catch(e) {}
+}
+
+function clearRiskCalc() {
+  localStorage.removeItem('forex_risk');
+  document.getElementById('riskBalance').value = '';
+  document.getElementById('riskPct').value     = '';
+  document.getElementById('riskPair').value    = '';
+  document.getElementById('riskSL').value      = '';
+  document.getElementById('riskResult').style.display = 'none';
+  document.getElementById('riskError').style.display  = 'none';
+}
+
 async function fetchRateToZAR(quoteCurrency) {
   if(quoteCurrency === 'ZAR') return 1;
   const cacheKey = quoteCurrency + '_ZAR';
@@ -2675,6 +2760,9 @@ async function calcRisk() {
   const errEl   = document.getElementById('riskError');
   const resEl   = document.getElementById('riskResult');
 
+  // Save values every time any field changes
+  saveRiskValues();
+
   errEl.style.display = 'none';
   resEl.style.display = 'none';
 
@@ -2684,10 +2772,8 @@ async function calcRisk() {
   const isJPY = quote === 'JPY';
   const pipSize = isJPY ? 0.01 : 0.0001;
   const unitsPerLot = 100000;
-  // Pip value in quote currency per standard lot
   const pipValueQuote = pipSize * unitsPerLot;
 
-  // Get live rate: quote currency → ZAR
   let rateToZAR = null;
   if(apiKey) {
     document.getElementById('rr-pipval').textContent = 'Fetching rate...';
@@ -2696,7 +2782,6 @@ async function calcRisk() {
   }
 
   if(!rateToZAR) {
-    // Fallback approximate rates if no API key or fetch failed
     const fallback = { USD:18.5, GBP:23.5, EUR:20.0, AUD:12.0, CAD:13.5, NZD:11.0, CHF:21.0, JPY:0.12 };
     rateToZAR = fallback[quote] || 1;
     document.getElementById('riskNote').textContent = `⚠ Live rate unavailable — using approximate rate of 1 ${quote} ≈ R ${rateToZAR}. Connect your API key for live rates.`;
@@ -2729,6 +2814,7 @@ function showPage(page, btn) {
   if(page === 'principles')   requestAnimationFrame(() => renderPrinciples());
   if(page === 'performance')  { initPerformance(); renderPerformance(); }
   if(page === 'checklist')    renderChecklist();
+  if(page === 'risk')         loadRiskCalc();
 }
 
 // ══════════════════════════════════════════════════════
@@ -2787,6 +2873,7 @@ window.onload = function() {
   loadJournal();
   loadHundred();
   loadChecklist();
+  loadRiskCalc();
   buildSettingsExtras();
 };</script>
 </body>
