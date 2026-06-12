@@ -15,11 +15,12 @@
     --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.12);
     --text: #e8eaf0; --muted: #6b7280; --bull: #00d084; --bear: #ff4d6d;
     --accent: #4f8ef7; --warn: #f59e0b; --gold: #fbbf24;
+    --nav-bg: rgba(10,12,15,0.95);
     --font-head: 'Syne', sans-serif; --font-mono: 'Space Mono', monospace;
   }
   body { background: var(--bg); color: var(--text); font-family: var(--font-head); min-height: 100vh; font-size: 17px; }
 
-  .nav { position: sticky; top: 0; z-index: 100; background: rgba(10,12,15,0.95); backdrop-filter: blur(12px); border-bottom: 0.5px solid var(--border2); width: 100%; }
+  .nav { position: sticky; top: 0; z-index: 100; background: var(--nav-bg); backdrop-filter: blur(12px); border-bottom: 0.5px solid var(--border2); width: 100%; }
   .nav-inner { width: 100%; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
   .nav-left { display: flex; align-items: center; gap: 12px; padding: 0.75rem 0; white-space: nowrap; flex-shrink: 0; }
   .nav-logo { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; white-space: nowrap; }
@@ -310,6 +311,7 @@
     --bg: #f4f6fa; --surface: #ffffff; --surface2: #eef0f5;
     --border: rgba(0,0,0,0.07); --border2: rgba(0,0,0,0.12);
     --text: #1a1d23; --muted: #6b7280;
+    --nav-bg: rgba(255,255,255,0.95);
   }
   .toggle-row { display: flex; align-items: center; gap: 12px; }
   .toggle-label { font-size: 14px; font-weight: 600; }
