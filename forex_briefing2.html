@@ -937,6 +937,14 @@
       </div>
     </div>
 
+    <div class="event-form-label">Repeat</div>
+    <select class="event-form-input" id="eventRepeat">
+      <option value="none">Does not repeat</option>
+      <option value="daily">Daily</option>
+      <option value="weekly">Weekly</option>
+      <option value="yearly">Yearly</option>
+    </select>
+
     <div class="event-form-buttons">
       <button class="btn btn-primary" style="flex:1" onclick="saveEvent()">Add event</button>
       <button class="btn btn-secondary" onclick="closeEventPanel()">Close</button>
@@ -1212,25 +1220,24 @@ let scanTotal = 0;
 // ── WEEK DATE HELPERS ──
 // When opened on Saturday or Sunday, show the UPCOMING week (Mon–Fri)
 // When opened Mon–Fri, show the CURRENT week
+// Trading week runs Saturday 00:00 → Friday 23:59.
+// Returns the Saturday that starts the trading week containing "today".
 function getUpcomingWeekMonday() {
   const d = new Date();
-  const day = d.getDay(); // 0=Sun, 1=Mon ... 6=Sat
-  let daysUntilMon;
-  if(day === 0) daysUntilMon = 1;       // Sunday → next Monday
-  else if(day === 6) daysUntilMon = 2;  // Saturday → Monday after
-  else daysUntilMon = -(day - 1);       // Mon–Fri → this week's Monday
-  const mon = new Date(d);
-  mon.setDate(d.getDate() + daysUntilMon);
-  mon.setHours(0,0,0,0);
-  return mon;
+  const day = d.getDay(); // 0=Sun..6=Sat
+  const offset = (day === 6) ? 0 : (day + 1); // days since last Saturday
+  const start = new Date(d);
+  start.setDate(d.getDate() - offset);
+  start.setHours(0,0,0,0);
+  return start; // Saturday 00:00
 }
 
 function getWeekDates() {
-  const mon = getUpcomingWeekMonday();
+  const sat = getUpcomingWeekMonday(); // Saturday start of trading week
   const dates = {};
-  ['MON','TUE','WED','THU','FRI'].forEach((day, i) => {
-    const d = new Date(mon);
-    d.setDate(mon.getDate() + i);
+  ['SAT','SUN','MON','TUE','WED','THU','FRI'].forEach((day, i) => {
+    const d = new Date(sat);
+    d.setDate(sat.getDate() + i);
     dates[day] = d;
   });
   return dates;
@@ -1242,9 +1249,9 @@ function getWeekKey() {
   return `forex_results_${mon.getFullYear()}_${mon.getMonth()}_${mon.getDate()}`;
 }
 function getFridayEnd() {
-  const mon = getUpcomingWeekMonday();
-  const fri = new Date(mon);
-  fri.setDate(mon.getDate() + 4);
+  const sat = getUpcomingWeekMonday(); // Saturday start
+  const fri = new Date(sat);
+  fri.setDate(sat.getDate() + 6); // Saturday + 6 = Friday
   fri.setHours(23,59,59,999);
   return fri;
 }
@@ -1271,11 +1278,11 @@ function init() {
   clearOldCaches();
   clearOldMacroCaches();
 
-  const mon = getUpcomingWeekMonday();
-  const fri = new Date(mon); fri.setDate(mon.getDate() + 4);
+  const sat = getUpcomingWeekMonday(); // Saturday start of trading week
+  const fri = new Date(sat); fri.setDate(sat.getDate() + 6); // Saturday + 6 = Friday
   const fmt      = x => x.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
   const fmtShort = x => x.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-  const weekStr  = `${fmtShort(mon)} – ${fmt(fri)}`;
+  const weekStr  = `${fmtShort(sat)} – ${fmt(fri)}`;
   document.getElementById('navWeek').textContent = weekStr;
   document.getElementById('macroSubtitle').textContent = `Week of ${weekStr}`;
 
@@ -3049,12 +3056,54 @@ function calToday() {
 // the actual dates from MACRO_EVENTS (date field) for the current loaded week
 function getNewsEventsByDate() {
   const map = {};
+  const weekDates = getWeekDates(); // SAT..FRI dates for the current trading week
   (MACRO_EVENTS || []).forEach(e => {
-    if(e.impact !== 'high' || !e.date) return;
-    if(!map[e.date]) map[e.date] = [];
-    map[e.date].push(e);
+    if(e.impact !== 'high') return;
+    const d = weekDates[e.day]; // e.day is MON/TUE/WED/THU etc — same mapping as Macro Events tab
+    if(!d) return;
+    const key = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
+    if(!map[key]) map[key] = [];
+    map[key].push(e);
   });
   return map;
+}
+
+// Returns all events (personal, including recurring) that apply to a given date key
+function getEventsForDate(key) {
+  const results = [];
+  const [ty, tm, td] = key.split('-').map(Number);
+  const targetDate = new Date(ty, tm-1, td);
+
+  Object.entries(calendarEvents).forEach(([origKey, events]) => {
+    const [oy, om, od] = origKey.split('-').map(Number);
+    const origDate = new Date(oy, om-1, od);
+
+    events.forEach((e, idx) => {
+      const repeat = e.repeat || 'none';
+
+      if(origKey === key) {
+        results.push({ ...e, origKey, idx, isOrigin: true });
+        return;
+      }
+
+      if(repeat === 'none') return;
+      if(targetDate <= origDate) return; // only future recurrences
+
+      if(repeat === 'daily') {
+        results.push({ ...e, origKey, idx, isOrigin: false });
+      } else if(repeat === 'weekly') {
+        if(targetDate.getDay() === origDate.getDay()) {
+          results.push({ ...e, origKey, idx, isOrigin: false });
+        }
+      } else if(repeat === 'yearly') {
+        if(targetDate.getMonth() === origDate.getMonth() && targetDate.getDate() === origDate.getDate()) {
+          results.push({ ...e, origKey, idx, isOrigin: false });
+        }
+      }
+    });
+  });
+
+  return results;
 }
 
 function renderCalendar() {
@@ -3102,7 +3151,7 @@ function renderCalendar() {
     cell.appendChild(num);
 
     const news = newsMap[key] || [];
-    const personal = calendarEvents[key] || [];
+    const personal = getEventsForDate(key);
 
     let shown = 0;
     news.slice(0,2).forEach(e => {
@@ -3144,6 +3193,7 @@ function openEventPanel(key) {
   document.getElementById('eventTimeSingle').value = '';
   document.getElementById('eventTimeStart').value = '';
   document.getElementById('eventTimeEnd').value = '';
+  document.getElementById('eventRepeat').value = 'none';
 
   renderExistingEvents(key);
   overlay.classList.add('open');
@@ -3160,7 +3210,7 @@ function renderExistingEvents(key) {
 
   const newsMap = getNewsEventsByDate();
   const news = newsMap[key] || [];
-  const personal = calendarEvents[key] || [];
+  const personal = getEventsForDate(key);
 
   if(news.length === 0 && personal.length === 0) {
     container.innerHTML = '<div class="todo-empty">No events for this day yet.</div>';
@@ -3174,16 +3224,19 @@ function renderExistingEvents(key) {
     container.appendChild(el);
   });
 
-  personal.forEach((e, i) => {
+  const REPEAT_LABELS = { daily:'Repeats daily', weekly:'Repeats weekly', yearly:'Repeats yearly' };
+
+  personal.forEach(e => {
     let timeStr = 'All day';
     if(e.mode === 'single' && e.time) timeStr = e.time;
     else if(e.mode === 'range' && (e.start || e.end)) timeStr = `${e.start||'?'} – ${e.end||'?'}`;
+    if(e.repeat && e.repeat !== 'none') timeStr += ` · ${REPEAT_LABELS[e.repeat]}`;
 
     const el = document.createElement('div');
     el.className = 'existing-event personal';
     el.innerHTML = `
       <div><div class="existing-event-text">${escapeHtml(e.text)}</div><div class="existing-event-time">${timeStr}</div></div>
-      <button class="existing-event-del" onclick="deleteEvent('${key}', ${i})">✕</button>`;
+      <button class="existing-event-del" onclick="deleteEvent('${e.origKey}', ${e.idx})" title="${e.isOrigin ? 'Delete' : 'Delete entire series'}">✕</button>`;
     container.appendChild(el);
   });
 }
@@ -3208,7 +3261,8 @@ function saveEvent() {
   if(!text) { alert('Please enter an event description.'); return; }
   if(!calSelectedDate) return;
 
-  const event = { text, mode: eventTimeMode };
+  const repeat = document.getElementById('eventRepeat').value;
+  const event = { text, mode: eventTimeMode, repeat };
   if(eventTimeMode === 'single') {
     event.time = document.getElementById('eventTimeSingle').value;
   } else if(eventTimeMode === 'range') {
@@ -3224,6 +3278,7 @@ function saveEvent() {
   document.getElementById('eventTimeSingle').value = '';
   document.getElementById('eventTimeStart').value = '';
   document.getElementById('eventTimeEnd').value = '';
+  document.getElementById('eventRepeat').value = 'none';
   setEventTimeMode('allday');
 
   renderExistingEvents(calSelectedDate);
