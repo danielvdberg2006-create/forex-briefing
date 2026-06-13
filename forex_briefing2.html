@@ -373,8 +373,73 @@
   .risk-note { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-top: 1rem; line-height: 1.6; }
   .btn-calc { width: 100%; background: var(--accent); color: #fff; font-weight: 700; font-size: 15px; padding: 13px; border-radius: 10px; border: none; cursor: pointer; font-family: var(--font-head); margin-top: 0.5rem; }
   .btn-calc:hover { opacity: 0.85; }
+
+  /* ── CALENDAR & TO-DO ── */
+  .cal-todo-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.5rem; align-items: start; }
+  @media(max-width:900px){ .cal-todo-grid { grid-template-columns: 1fr; } }
+
+  .cal-card { background: var(--surface); border: 0.5px solid var(--border2); border-radius: 16px; padding: 1.5rem; }
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  .cal-title { font-size: 18px; font-weight: 800; }
+  .cal-nav-btn { background: var(--surface2); border: 0.5px solid var(--border2); color: var(--text); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  .cal-nav-btn:hover { border-color: var(--accent); }
+  .cal-nav-group { display: flex; gap: 8px; align-items: center; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal-daylabel { font-family: var(--font-mono); font-size: 11px; color: var(--muted); text-align: center; padding-bottom: 6px; font-weight: 700; }
+  .cal-cell { aspect-ratio: 1; border-radius: 10px; border: 0.5px solid var(--border); background: var(--surface2); padding: 6px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; overflow: hidden; transition: border-color 0.15s; position: relative; }
+  .cal-cell:hover { border-color: var(--accent); }
+  .cal-cell.empty { background: transparent; border: none; cursor: default; }
+  .cal-cell.today { border-color: var(--accent); border-width: 1.5px; }
+  .cal-daynum { font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--text); }
+  .cal-event-dot { font-size: 9px; padding: 2px 5px; border-radius: 4px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); }
+  .cal-event-dot.news { background: rgba(255,77,109,0.18); color: var(--bear); }
+  .cal-event-dot.personal { background: rgba(79,142,247,0.18); color: var(--accent); }
+  .cal-more { font-size: 9px; color: var(--muted); font-family: var(--font-mono); }
+
+  /* Event panel */
+  .event-panel-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 1rem; }
+  .event-panel-overlay.open { display: flex; }
+  .event-panel { background: var(--surface); border: 0.5px solid var(--border2); border-radius: 16px; padding: 1.5rem; max-width: 460px; width: 100%; max-height: 85vh; overflow-y: auto; }
+  .event-panel-title { font-size: 16px; font-weight: 800; margin-bottom: 0.25rem; }
+  .event-panel-date { font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin-bottom: 1.25rem; }
+  .event-list-existing { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.25rem; }
+  .existing-event { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; background: var(--surface2); border-radius: 8px; padding: 10px 12px; }
+  .existing-event.news { border-left: 3px solid var(--bear); }
+  .existing-event.personal { border-left: 3px solid var(--accent); }
+  .existing-event-text { font-size: 13px; flex: 1; }
+  .existing-event-time { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .existing-event-del { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 14px; flex-shrink: 0; }
+  .existing-event-del:hover { color: var(--bear); }
+  .event-form-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; margin-top: 1rem; }
+  .event-form-label:first-of-type { margin-top: 0; }
+  .event-form-input { width: 100%; background: var(--bg); border: 0.5px solid var(--border2); border-radius: 8px; padding: 10px 14px; font-family: var(--font-head); font-size: 14px; color: var(--text); outline: none; }
+  .event-form-input:focus { border-color: var(--accent); }
+  .event-time-row { display: flex; gap: 10px; }
+  .event-time-row > div { flex: 1; }
+  .event-form-buttons { display: flex; gap: 10px; margin-top: 1.5rem; }
+  .toggle-time-mode { display: flex; gap: 8px; margin-top: 0.5rem; }
+  .time-mode-btn { flex: 1; font-family: var(--font-mono); font-size: 12px; padding: 8px; border-radius: 8px; border: 0.5px solid var(--border2); background: var(--surface2); color: var(--muted); cursor: pointer; }
+  .time-mode-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,0.08); }
+
+  /* To-do list */
+  .todo-card { background: var(--surface); border: 0.5px solid var(--border2); border-radius: 16px; padding: 1.5rem; }
+  .todo-title { font-size: 18px; font-weight: 800; margin-bottom: 1.25rem; }
+  .todo-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 0.75rem; }
+  .todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border-radius: 8px; transition: background 0.1s; }
+  .todo-item:hover { background: var(--surface2); }
+  .todo-item:hover .todo-del { opacity: 1; }
+  .todo-check { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--border2); background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; cursor: pointer; margin-top: 1px; transition: all 0.15s; }
+  .todo-item.checked .todo-check { background: var(--bull); border-color: var(--bull); color: #000; }
+  .todo-text { flex: 1; font-size: 14px; line-height: 1.5; cursor: pointer; word-break: break-word; }
+  .todo-item.checked .todo-text { text-decoration: line-through; color: var(--muted); }
+  .todo-del { opacity: 0; background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 14px; flex-shrink: 0; transition: opacity 0.15s; }
+  .todo-del:hover { color: var(--bear); }
+  .todo-input { width: 100%; background: var(--bg); border: 0.5px solid var(--border2); border-radius: 8px; padding: 10px 14px; font-family: var(--font-head); font-size: 14px; color: var(--text); outline: none; margin-top: 0.5rem; }
+  .todo-input:focus { border-color: var(--accent); }
+  .todo-empty { font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding: 0.5rem 0; }
 </style>
 </head>
+
 <body>
 
 <nav class="nav">
@@ -395,7 +460,7 @@
       <button class="nav-tab risk-tab" id="tab-risk" onclick="showPage('risk',this)">🧮 Risk Calc</button>
       <button class="nav-tab settings-tab" id="tab-settings" onclick="showPage('settings',this)">⚙️</button>
     </div>
-    <div class="nav-week" id="navWeek" style="flex-shrink:0;margin-left:8px">Loading...</div>
+    <div class="nav-week" id="navWeek" style="flex-shrink:0;margin-left:8px;cursor:pointer" onclick="showPage('calendar', null)" title="Open calendar & to-do list">Loading...</div>
   </div>
 </nav>
 
@@ -811,6 +876,74 @@
   </div>
 </div>
 
+<!-- CALENDAR & TO-DO PAGE -->
+<div class="page" id="page-calendar">
+  <div class="page-title">Calendar & To-Do</div>
+  <div class="page-sub">Trading week schedule, high-impact news and your personal to-do list</div>
+
+  <div class="cal-todo-grid">
+    <div class="cal-card">
+      <div class="cal-header">
+        <div class="cal-title" id="calMonthLabel">Month Year</div>
+        <div class="cal-nav-group">
+          <button class="cal-nav-btn" onclick="calPrevMonth()">‹</button>
+          <button class="cal-nav-btn" onclick="calToday()" title="Jump to today" style="font-size:11px;font-family:var(--font-mono)">●</button>
+          <button class="cal-nav-btn" onclick="calNextMonth()">›</button>
+        </div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div style="display:flex;gap:16px;margin-top:1rem;font-family:var(--font-mono);font-size:11px;color:var(--muted)">
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:rgba(255,77,109,0.5);display:inline-block"></span>High-impact news</div>
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:rgba(79,142,247,0.5);display:inline-block"></span>Your events</div>
+      </div>
+    </div>
+
+    <div class="todo-card">
+      <div class="todo-title">To-Do List</div>
+      <div class="todo-list" id="todoList"></div>
+      <input class="todo-input" id="todoInput" placeholder="Type a task and press Enter..." onkeydown="if(event.key==='Enter'){addTodo();event.preventDefault();}">
+    </div>
+  </div>
+</div>
+
+<!-- EVENT PANEL (modal) -->
+<div class="event-panel-overlay" id="eventPanelOverlay" onclick="if(event.target===this) closeEventPanel()">
+  <div class="event-panel">
+    <div class="event-panel-title">Day events</div>
+    <div class="event-panel-date" id="eventPanelDate"></div>
+
+    <div class="event-list-existing" id="eventListExisting"></div>
+
+    <div class="event-form-label">Event description</div>
+    <input class="event-form-input" id="eventDesc" placeholder="e.g. Review GBP/JPY setup">
+
+    <div class="event-form-label">Time type</div>
+    <div class="toggle-time-mode">
+      <button class="time-mode-btn active" id="modeAllDay" onclick="setEventTimeMode('allday')">All day</button>
+      <button class="time-mode-btn" id="modeSingle" onclick="setEventTimeMode('single')">Specific time</button>
+      <button class="time-mode-btn" id="modeRange" onclick="setEventTimeMode('range')">Start / End time</button>
+    </div>
+
+    <div id="singleTimeField" style="display:none">
+      <div class="event-form-label">Time</div>
+      <input class="event-form-input" id="eventTimeSingle" type="time">
+    </div>
+
+    <div id="rangeTimeFields" style="display:none">
+      <div class="event-form-label">Start / End time</div>
+      <div class="event-time-row">
+        <div><input class="event-form-input" id="eventTimeStart" type="time"></div>
+        <div><input class="event-form-input" id="eventTimeEnd" type="time"></div>
+      </div>
+    </div>
+
+    <div class="event-form-buttons">
+      <button class="btn btn-primary" style="flex:1" onclick="saveEvent()">Add event</button>
+      <button class="btn btn-secondary" onclick="closeEventPanel()">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const YOUR_PAIRS = [
   'NZD/USD','USD/CAD','USD/JPY','CAD/JPY','GBP/CAD','EUR/JPY',
@@ -974,7 +1107,13 @@ function parseFForexFactoryRSS(xmlText) {
     if(previous) desc += ` · Previous: ${previous}`;
     desc += '. Check forexfactory.com for full analysis.';
 
-    events.push({ day, time: displayTime, name: title, impact: impactLevel, currency, desc, pairs });
+    // Store actual date (YYYY-MM-DD) for calendar matching
+    let dateStr = null;
+    if(!isNaN(d)) {
+      dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    events.push({ day, time: displayTime, name: title, impact: impactLevel, currency, desc, pairs, date: dateStr });
   });
 
   // Sort by day order
@@ -2812,11 +2951,12 @@ function showPage(page, btn) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
-  btn.classList.add('active');
+  if(btn) btn.classList.add('active');
   if(page === 'principles')   requestAnimationFrame(() => renderPrinciples());
   if(page === 'performance')  { initPerformance(); renderPerformance(); }
   if(page === 'checklist')    renderChecklist();
   if(page === 'risk')         loadRiskCalc();
+  if(page === 'calendar')     { renderCalendar(); renderTodo(); }
 }
 
 // ══════════════════════════════════════════════════════
@@ -2864,8 +3004,280 @@ function buildSettingsExtras() {
 }
 
 // ══════════════════════════════════════════════════════
-// ── INITIALISE EVERYTHING ONCE DOM IS FULLY READY ──
+// ── CALENDAR & TO-DO ──
 // ══════════════════════════════════════════════════════
+let calViewYear, calViewMonth; // 0-indexed month
+let calSelectedDate = null;     // 'YYYY-MM-DD' currently open in panel
+let eventTimeMode = 'allday';
+let todoItems = [];             // [{text, checked}]
+let calendarEvents = {};        // { 'YYYY-MM-DD': [{text, mode, time, start, end}] }
+
+function pad2(n) { return String(n).padStart(2,'0'); }
+function dateKey(y,m,d) { return `${y}-${pad2(m+1)}-${pad2(d)}`; }
+
+function loadCalendarData() {
+  try { calendarEvents = JSON.parse(localStorage.getItem('forex_calendar_events') || '{}'); } catch(e) { calendarEvents = {}; }
+  try { todoItems = JSON.parse(localStorage.getItem('forex_todo') || '[]'); } catch(e) { todoItems = []; }
+}
+function saveCalendarEvents() { localStorage.setItem('forex_calendar_events', JSON.stringify(calendarEvents)); }
+function saveTodoItems()      { localStorage.setItem('forex_todo', JSON.stringify(todoItems)); }
+
+function initCalendar() {
+  const now = new Date();
+  calViewYear  = now.getFullYear();
+  calViewMonth = now.getMonth();
+}
+
+function calPrevMonth() {
+  calViewMonth--;
+  if(calViewMonth < 0) { calViewMonth = 11; calViewYear--; }
+  renderCalendar();
+}
+function calNextMonth() {
+  calViewMonth++;
+  if(calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
+  renderCalendar();
+}
+function calToday() {
+  const now = new Date();
+  calViewYear = now.getFullYear();
+  calViewMonth = now.getMonth();
+  renderCalendar();
+}
+
+// Build a map of high-impact news events keyed by date, using
+// the actual dates from MACRO_EVENTS (date field) for the current loaded week
+function getNewsEventsByDate() {
+  const map = {};
+  (MACRO_EVENTS || []).forEach(e => {
+    if(e.impact !== 'high' || !e.date) return;
+    if(!map[e.date]) map[e.date] = [];
+    map[e.date].push(e);
+  });
+  return map;
+}
+
+function renderCalendar() {
+  const grid  = document.getElementById('calGrid');
+  const label = document.getElementById('calMonthLabel');
+  if(!grid || !label) return;
+
+  const MONTH_NAMES_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  label.textContent = `${MONTH_NAMES_FULL[calViewMonth]} ${calViewYear}`;
+
+  grid.innerHTML = '';
+  ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-daylabel';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const firstDay = new Date(calViewYear, calViewMonth, 1);
+  // Convert JS getDay (0=Sun) to Mon-first index (0=Mon..6=Sun)
+  let startOffset = firstDay.getDay() - 1;
+  if(startOffset < 0) startOffset = 6;
+
+  const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+  const newsMap = getNewsEventsByDate();
+
+  const today = new Date();
+  const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+
+  for(let i = 0; i < startOffset; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-cell empty';
+    grid.appendChild(el);
+  }
+
+  for(let day = 1; day <= daysInMonth; day++) {
+    const key = dateKey(calViewYear, calViewMonth, day);
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell' + (key === todayKey ? ' today' : '');
+    cell.onclick = () => openEventPanel(key);
+
+    const num = document.createElement('div');
+    num.className = 'cal-daynum';
+    num.textContent = day;
+    cell.appendChild(num);
+
+    const news = newsMap[key] || [];
+    const personal = calendarEvents[key] || [];
+
+    let shown = 0;
+    news.slice(0,2).forEach(e => {
+      const dot = document.createElement('div');
+      dot.className = 'cal-event-dot news';
+      dot.textContent = e.name;
+      cell.appendChild(dot);
+      shown++;
+    });
+    personal.slice(0, Math.max(0, 2-shown)).forEach(e => {
+      const dot = document.createElement('div');
+      dot.className = 'cal-event-dot personal';
+      dot.textContent = e.text;
+      cell.appendChild(dot);
+      shown++;
+    });
+
+    const total = news.length + personal.length;
+    if(total > shown) {
+      const more = document.createElement('div');
+      more.className = 'cal-more';
+      more.textContent = `+${total - shown} more`;
+      cell.appendChild(more);
+    }
+
+    grid.appendChild(cell);
+  }
+}
+
+// ── EVENT PANEL ──
+function openEventPanel(key) {
+  calSelectedDate = key;
+  const overlay = document.getElementById('eventPanelOverlay');
+  const d = new Date(key + 'T00:00:00');
+  document.getElementById('eventPanelDate').textContent = d.toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'long', year:'numeric'});
+
+  document.getElementById('eventDesc').value = '';
+  setEventTimeMode('allday');
+  document.getElementById('eventTimeSingle').value = '';
+  document.getElementById('eventTimeStart').value = '';
+  document.getElementById('eventTimeEnd').value = '';
+
+  renderExistingEvents(key);
+  overlay.classList.add('open');
+}
+
+function closeEventPanel() {
+  document.getElementById('eventPanelOverlay').classList.remove('open');
+  calSelectedDate = null;
+}
+
+function renderExistingEvents(key) {
+  const container = document.getElementById('eventListExisting');
+  container.innerHTML = '';
+
+  const newsMap = getNewsEventsByDate();
+  const news = newsMap[key] || [];
+  const personal = calendarEvents[key] || [];
+
+  if(news.length === 0 && personal.length === 0) {
+    container.innerHTML = '<div class="todo-empty">No events for this day yet.</div>';
+    return;
+  }
+
+  news.forEach(e => {
+    const el = document.createElement('div');
+    el.className = 'existing-event news';
+    el.innerHTML = `<div><div class="existing-event-text">🔴 ${e.name}</div><div class="existing-event-time">${e.time || 'High-impact news'}</div></div>`;
+    container.appendChild(el);
+  });
+
+  personal.forEach((e, i) => {
+    let timeStr = 'All day';
+    if(e.mode === 'single' && e.time) timeStr = e.time;
+    else if(e.mode === 'range' && (e.start || e.end)) timeStr = `${e.start||'?'} – ${e.end||'?'}`;
+
+    const el = document.createElement('div');
+    el.className = 'existing-event personal';
+    el.innerHTML = `
+      <div><div class="existing-event-text">${escapeHtml(e.text)}</div><div class="existing-event-time">${timeStr}</div></div>
+      <button class="existing-event-del" onclick="deleteEvent('${key}', ${i})">✕</button>`;
+    container.appendChild(el);
+  });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function setEventTimeMode(mode) {
+  eventTimeMode = mode;
+  document.getElementById('modeAllDay').classList.toggle('active', mode==='allday');
+  document.getElementById('modeSingle').classList.toggle('active', mode==='single');
+  document.getElementById('modeRange').classList.toggle('active', mode==='range');
+  document.getElementById('singleTimeField').style.display = mode==='single' ? 'block' : 'none';
+  document.getElementById('rangeTimeFields').style.display = mode==='range' ? 'block' : 'none';
+}
+
+function saveEvent() {
+  const text = document.getElementById('eventDesc').value.trim();
+  if(!text) { alert('Please enter an event description.'); return; }
+  if(!calSelectedDate) return;
+
+  const event = { text, mode: eventTimeMode };
+  if(eventTimeMode === 'single') {
+    event.time = document.getElementById('eventTimeSingle').value;
+  } else if(eventTimeMode === 'range') {
+    event.start = document.getElementById('eventTimeStart').value;
+    event.end   = document.getElementById('eventTimeEnd').value;
+  }
+
+  if(!calendarEvents[calSelectedDate]) calendarEvents[calSelectedDate] = [];
+  calendarEvents[calSelectedDate].push(event);
+  saveCalendarEvents();
+
+  document.getElementById('eventDesc').value = '';
+  document.getElementById('eventTimeSingle').value = '';
+  document.getElementById('eventTimeStart').value = '';
+  document.getElementById('eventTimeEnd').value = '';
+  setEventTimeMode('allday');
+
+  renderExistingEvents(calSelectedDate);
+  renderCalendar();
+}
+
+function deleteEvent(key, idx) {
+  if(!calendarEvents[key]) return;
+  calendarEvents[key].splice(idx, 1);
+  if(calendarEvents[key].length === 0) delete calendarEvents[key];
+  saveCalendarEvents();
+  renderExistingEvents(key);
+  renderCalendar();
+}
+
+// ── TO-DO LIST ──
+function renderTodo() {
+  const list = document.getElementById('todoList');
+  if(!list) return;
+  if(todoItems.length === 0) {
+    list.innerHTML = '<div class="todo-empty">No tasks yet — type below and press Enter.</div>';
+    return;
+  }
+  list.innerHTML = todoItems.map((item, i) => `
+    <div class="todo-item ${item.checked ? 'checked' : ''}">
+      <div class="todo-check" onclick="toggleTodo(${i})">${item.checked ? '✓' : ''}</div>
+      <div class="todo-text" onclick="toggleTodo(${i})">${escapeHtml(item.text)}</div>
+      <button class="todo-del" onclick="deleteTodo(${i})">✕</button>
+    </div>`).join('');
+}
+
+function addTodo() {
+  const input = document.getElementById('todoInput');
+  const val = input.value.trim();
+  if(!val) return;
+  todoItems.push({ text: val, checked: false });
+  saveTodoItems();
+  renderTodo();
+  input.value = '';
+}
+
+function toggleTodo(i) {
+  todoItems[i].checked = !todoItems[i].checked;
+  saveTodoItems();
+  renderTodo();
+}
+
+function deleteTodo(i) {
+  todoItems.splice(i, 1);
+  saveTodoItems();
+  renderTodo();
+}
+
+
 window.onload = function() {
   hideSplash();
   init();
@@ -2876,6 +3288,8 @@ window.onload = function() {
   loadHundred();
   loadChecklist();
   loadRiskCalc();
+  loadCalendarData();
+  initCalendar();
   buildSettingsExtras();
 };</script>
 </body>
