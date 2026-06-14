@@ -3154,17 +3154,17 @@ function renderCalendar() {
     const personal = getEventsForDate(key);
 
     let shown = 0;
-    news.slice(0,2).forEach(e => {
-      const dot = document.createElement('div');
-      dot.className = 'cal-event-dot news';
-      dot.textContent = e.name;
-      cell.appendChild(dot);
-      shown++;
-    });
-    personal.slice(0, Math.max(0, 2-shown)).forEach(e => {
+    personal.slice(0,2).forEach(e => {
       const dot = document.createElement('div');
       dot.className = 'cal-event-dot personal';
       dot.textContent = e.text;
+      cell.appendChild(dot);
+      shown++;
+    });
+    news.slice(0, Math.max(0, 2-shown)).forEach(e => {
+      const dot = document.createElement('div');
+      dot.className = 'cal-event-dot news';
+      dot.textContent = e.name;
       cell.appendChild(dot);
       shown++;
     });
@@ -3217,13 +3217,6 @@ function renderExistingEvents(key) {
     return;
   }
 
-  news.forEach(e => {
-    const el = document.createElement('div');
-    el.className = 'existing-event news';
-    el.innerHTML = `<div><div class="existing-event-text">🔴 ${e.name}</div><div class="existing-event-time">${e.time || 'High-impact news'}</div></div>`;
-    container.appendChild(el);
-  });
-
   const REPEAT_LABELS = { daily:'Repeats daily', weekly:'Repeats weekly', yearly:'Repeats yearly' };
 
   personal.forEach(e => {
@@ -3237,6 +3230,13 @@ function renderExistingEvents(key) {
     el.innerHTML = `
       <div><div class="existing-event-text">${escapeHtml(e.text)}</div><div class="existing-event-time">${timeStr}</div></div>
       <button class="existing-event-del" onclick="deleteEvent('${e.origKey}', ${e.idx})" title="${e.isOrigin ? 'Delete' : 'Delete entire series'}">✕</button>`;
+    container.appendChild(el);
+  });
+
+  news.forEach(e => {
+    const el = document.createElement('div');
+    el.className = 'existing-event news';
+    el.innerHTML = `<div><div class="existing-event-text">🔴 ${e.name}</div><div class="existing-event-time">${e.time || 'High-impact news'}</div></div>`;
     container.appendChild(el);
   });
 }
