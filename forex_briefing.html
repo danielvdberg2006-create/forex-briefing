@@ -15,17 +15,19 @@
     --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.12);
     --text: #e8eaf0; --muted: #6b7280; --bull: #00d084; --bear: #ff4d6d;
     --accent: #4f8ef7; --warn: #f59e0b; --gold: #fbbf24;
+    --nav-bg: rgba(10,12,15,0.95);
     --font-head: 'Syne', sans-serif; --font-mono: 'Space Mono', monospace;
   }
   body { background: var(--bg); color: var(--text); font-family: var(--font-head); min-height: 100vh; font-size: 17px; }
 
-  .nav { position: sticky; top: 0; z-index: 100; background: rgba(10,12,15,0.95); backdrop-filter: blur(12px); border-bottom: 0.5px solid var(--border2); }
-  .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-  .nav-left { display: flex; align-items: center; gap: 14px; padding: 0.75rem 0; }
-  .nav-logo { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+  .nav { position: sticky; top: 0; z-index: 100; background: var(--nav-bg); backdrop-filter: blur(12px); border-bottom: 0.5px solid var(--border2); width: 100%; }
+  .nav-inner { width: 100%; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  .nav-left { display: flex; align-items: center; gap: 12px; padding: 0.75rem 0; white-space: nowrap; flex-shrink: 0; }
+  .nav-logo { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; white-space: nowrap; }
   .nav-logo span { color: var(--accent); }
-  .nav-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
-  .nav-tab { font-family: var(--font-head); font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 8px; border: none; background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+  .nav-tabs { display: flex; gap: 3px; align-items: center; overflow-x: auto; padding: 0.5rem 0; scrollbar-width: none; flex: 1; justify-content: flex-end; }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab { font-family: var(--font-head); font-size: 13px; font-weight: 600; padding: 7px 13px; border-radius: 8px; border: none; background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
   .nav-tab:hover { color: var(--text); background: var(--surface2); }
   .nav-tab.active { background: var(--surface2); color: var(--text); border: 0.5px solid var(--border2); }
   .nav-tab.active.macro-tab      { color: var(--warn);   border-color: rgba(245,158,11,0.3);  background: rgba(245,158,11,0.08); }
@@ -36,6 +38,9 @@
   .nav-tab.active.journal-tab    { color: #2dd4bf;       border-color: rgba(45,212,191,0.3);  background: rgba(45,212,191,0.08); }
   .nav-tab.active.hundred-tab    { color: #fb923c;       border-color: rgba(251,146,60,0.3);  background: rgba(251,146,60,0.08); }
   .nav-tab.active.settings-tab   { color: var(--muted);  border-color: var(--border2);        background: var(--surface2); }
+  .nav-tab.active.checklist-tab  { color: #34d399;       border-color: rgba(52,211,153,0.3);  background: rgba(52,211,153,0.08); }
+  .nav-tab.active.performance-tab{ color: #818cf8;       border-color: rgba(129,140,248,0.3); background: rgba(129,140,248,0.08); }
+  .nav-tab.active.risk-tab       { color: #f87171;       border-color: rgba(248,113,113,0.3); background: rgba(248,113,113,0.08); }
   .nav-week { font-family: var(--font-mono); font-size: 12px; color: var(--accent); padding: 6px 12px; background: var(--surface2); border-radius: 6px; border: 0.5px solid var(--border2); white-space: nowrap; }
 
   .page { display: none; max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
@@ -288,8 +293,153 @@
   .trade-num { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
   .progress-trades { background: var(--surface2); border-radius: 99px; height: 8px; width: 100%; overflow: hidden; margin-bottom: 6px; }
   .progress-trades-fill { height: 8px; background: var(--accent); border-radius: 99px; transition: width 0.5s; }
+
+  /* ── SPLASH SCREEN ── */
+  .splash { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; transition: opacity 0.6s ease; }
+  .splash.fade-out { opacity: 0; pointer-events: none; }
+  .splash-logo { width: 90px; height: 90px; border-radius: 16px; animation: splashPulse 1.5s ease-in-out infinite; }
+  .splash-title { font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+  .splash-title span { color: var(--accent); }
+  .splash-sub { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+  .splash-bar-wrap { width: 200px; height: 3px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+  .splash-bar { height: 3px; background: var(--accent); border-radius: 99px; animation: splashLoad 1.8s ease-in-out forwards; }
+  @keyframes splashPulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.05);opacity:0.85} }
+  @keyframes splashLoad { 0%{width:0%} 80%{width:90%} 100%{width:100%} }
+
+  /* ── DARK / LIGHT MODE ── */
+  body.light-mode {
+    --bg: #f4f6fa; --surface: #ffffff; --surface2: #eef0f5;
+    --border: rgba(0,0,0,0.07); --border2: rgba(0,0,0,0.12);
+    --text: #1a1d23; --muted: #6b7280;
+    --nav-bg: rgba(255,255,255,0.95);
+  }
+  .toggle-row { display: flex; align-items: center; gap: 12px; }
+  .toggle-label { font-size: 14px; font-weight: 600; }
+  .toggle-switch { position: relative; width: 48px; height: 26px; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; inset: 0; background: var(--surface2); border-radius: 99px; cursor: pointer; border: 0.5px solid var(--border2); transition: background 0.2s; }
+  .toggle-slider:before { content: ''; position: absolute; width: 18px; height: 18px; left: 4px; top: 3px; background: var(--muted); border-radius: 50%; transition: transform 0.2s, background 0.2s; }
+  input:checked + .toggle-slider { background: rgba(79,142,247,0.2); }
+  input:checked + .toggle-slider:before { transform: translateX(22px); background: var(--accent); }
+
+  /* ── CHECKLIST PAGE ── */
+  .checklist-card { background: var(--surface); border: 0.5px solid var(--border2); border-radius: 16px; padding: 2rem; max-width: 600px; margin: 0 auto; }
+  .checklist-title { font-size: 20px; font-weight: 800; margin-bottom: 0.5rem; }
+  .checklist-sub { font-family: var(--font-mono); font-size: 13px; color: var(--muted); margin-bottom: 2rem; }
+  .checklist-items { display: flex; flex-direction: column; gap: 14px; margin-bottom: 2rem; }
+  .checklist-item { display: flex; align-items: center; gap: 14px; background: var(--surface2); border: 0.5px solid var(--border); border-radius: 10px; padding: 14px 16px; cursor: pointer; transition: all 0.15s; user-select: none; }
+  .checklist-item:hover { border-color: var(--border2); }
+  .checklist-item.checked { border-color: rgba(0,208,132,0.4); background: rgba(0,208,132,0.05); }
+  .check-box { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--border2); background: var(--bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; transition: all 0.15s; }
+  .checklist-item.checked .check-box { background: var(--bull); border-color: var(--bull); color: #000; }
+  .check-item-label { font-size: 15px; font-weight: 600; }
+  .check-item-desc { font-size: 12px; color: var(--muted); font-family: var(--font-mono); margin-top: 2px; }
+  .checklist-verdict { text-align: center; padding: 1.25rem; border-radius: 10px; font-size: 16px; font-weight: 700; transition: all 0.3s; }
+  .verdict-ready { background: rgba(0,208,132,0.12); color: var(--bull); border: 0.5px solid rgba(0,208,132,0.3); }
+  .verdict-not-ready { background: rgba(255,77,109,0.08); color: var(--muted); border: 0.5px solid var(--border2); }
+  .checklist-reset { margin-top: 1rem; width: 100%; background: transparent; border: 0.5px solid var(--border2); color: var(--muted); font-family: var(--font-mono); font-size: 12px; padding: 8px; border-radius: 8px; cursor: pointer; }
+  .checklist-reset:hover { border-color: var(--accent); color: var(--text); }
+
+  /* ── PERFORMANCE DASHBOARD ── */
+  .perf-year-select { background: var(--bg); border: 0.5px solid var(--border2); border-radius: 8px; padding: 8px 14px; font-family: var(--font-mono); font-size: 14px; color: var(--text); outline: none; cursor: pointer; margin-bottom: 2rem; }
+  .perf-stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 2rem; }
+  .perf-stat { background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; padding: 16px; }
+  .perf-stat-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  .perf-stat-val { font-size: 22px; font-weight: 800; }
+  .month-perf-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+  @media(max-width:640px){ .month-perf-grid { grid-template-columns: 1fr; } }
+  .month-perf-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .month-perf-name { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .month-perf-row { display: flex; justify-content: space-between; font-size: 12px; font-family: var(--font-mono); padding: 3px 0; border-bottom: 0.5px solid var(--border); }
+  .month-perf-row:last-child { border-bottom: none; }
+  .month-perf-card.best-month { border-color: rgba(0,208,132,0.4); }
+  .month-perf-card.worst-month { border-color: rgba(255,77,109,0.4); }
+
+  /* ── RISK CALCULATOR ── */
+  .risk-card { background: var(--surface); border: 0.5px solid var(--border2); border-radius: 16px; padding: 2rem; max-width: 640px; margin: 0 auto; }
+  .risk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  .risk-field { display: flex; flex-direction: column; gap: 6px; }
+  .risk-label { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; }
+  .risk-input { background: var(--bg); border: 0.5px solid var(--border2); border-radius: 8px; padding: 10px 14px; font-family: var(--font-mono); font-size: 15px; color: var(--text); outline: none; }
+  .risk-input:focus { border-color: var(--accent); }
+  .risk-select { background: var(--bg); border: 0.5px solid var(--border2); border-radius: 8px; padding: 10px 14px; font-family: var(--font-mono); font-size: 14px; color: var(--text); outline: none; cursor: pointer; }
+  .risk-result { background: var(--surface2); border-radius: 12px; padding: 1.5rem; margin-top: 1rem; }
+  .risk-result-title { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 1rem; }
+  .risk-result-rows { display: flex; flex-direction: column; gap: 10px; }
+  .risk-result-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg); border-radius: 8px; }
+  .risk-result-label { font-size: 13px; color: var(--muted); }
+  .risk-result-val { font-family: var(--font-mono); font-size: 16px; font-weight: 700; color: var(--text); }
+  .risk-result-val.highlight { color: var(--accent); font-size: 20px; }
+  .risk-note { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-top: 1rem; line-height: 1.6; }
+  .btn-calc { width: 100%; background: var(--accent); color: #fff; font-weight: 700; font-size: 15px; padding: 13px; border-radius: 10px; border: none; cursor: pointer; font-family: var(--font-head); margin-top: 0.5rem; }
+  .btn-calc:hover { opacity: 0.85; }
+
+  /* ── CALENDAR & TO-DO ── */
+  .cal-todo-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.5rem; align-items: start; }
+  @media(max-width:900px){ .cal-todo-grid { grid-template-columns: 1fr; } }
+
+  .cal-card { background: var(--surface); border: 0.5px solid var(--border2); border-radius: 16px; padding: 1.5rem; }
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  .cal-title { font-size: 18px; font-weight: 800; }
+  .cal-nav-btn { background: var(--surface2); border: 0.5px solid var(--border2); color: var(--text); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  .cal-nav-btn:hover { border-color: var(--accent); }
+  .cal-nav-group { display: flex; gap: 8px; align-items: center; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal-daylabel { font-family: var(--font-mono); font-size: 11px; color: var(--muted); text-align: center; padding-bottom: 6px; font-weight: 700; }
+  .cal-cell { aspect-ratio: 1; border-radius: 10px; border: 0.5px solid var(--border); background: var(--surface2); padding: 6px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; overflow: hidden; transition: border-color 0.15s; position: relative; }
+  .cal-cell:hover { border-color: var(--accent); }
+  .cal-cell.empty { background: transparent; border: none; cursor: default; }
+  .cal-cell.today { border-color: var(--accent); border-width: 1.5px; }
+  .cal-daynum { font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--text); }
+  .cal-event-dot { font-size: 9px; padding: 2px 5px; border-radius: 4px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); }
+  .cal-event-dot.news { background: rgba(255,77,109,0.18); color: var(--bear); }
+  .cal-event-dot.personal { background: rgba(79,142,247,0.18); color: var(--accent); }
+  .cal-more { font-size: 9px; color: var(--muted); font-family: var(--font-mono); }
+
+  /* Event panel */
+  .event-panel-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 1rem; }
+  .event-panel-overlay.open { display: flex; }
+  .event-panel { background: var(--surface); border: 0.5px solid var(--border2); border-radius: 16px; padding: 1.5rem; max-width: 460px; width: 100%; max-height: 85vh; overflow-y: auto; }
+  .event-panel-title { font-size: 16px; font-weight: 800; margin-bottom: 0.25rem; }
+  .event-panel-date { font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin-bottom: 1.25rem; }
+  .event-list-existing { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.25rem; }
+  .existing-event { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; background: var(--surface2); border-radius: 8px; padding: 10px 12px; }
+  .existing-event.news { border-left: 3px solid var(--bear); }
+  .existing-event.personal { border-left: 3px solid var(--accent); }
+  .existing-event-text { font-size: 13px; flex: 1; }
+  .existing-event-time { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .existing-event-del { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 14px; flex-shrink: 0; }
+  .existing-event-del:hover { color: var(--bear); }
+  .event-form-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; margin-top: 1rem; }
+  .event-form-label:first-of-type { margin-top: 0; }
+  .event-form-input { width: 100%; background: var(--bg); border: 0.5px solid var(--border2); border-radius: 8px; padding: 10px 14px; font-family: var(--font-head); font-size: 14px; color: var(--text); outline: none; }
+  .event-form-input:focus { border-color: var(--accent); }
+  .event-time-row { display: flex; gap: 10px; }
+  .event-time-row > div { flex: 1; }
+  .event-form-buttons { display: flex; gap: 10px; margin-top: 1.5rem; }
+  .toggle-time-mode { display: flex; gap: 8px; margin-top: 0.5rem; }
+  .time-mode-btn { flex: 1; font-family: var(--font-mono); font-size: 12px; padding: 8px; border-radius: 8px; border: 0.5px solid var(--border2); background: var(--surface2); color: var(--muted); cursor: pointer; }
+  .time-mode-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,0.08); }
+
+  /* To-do list */
+  .todo-card { background: var(--surface); border: 0.5px solid var(--border2); border-radius: 16px; padding: 1.5rem; }
+  .todo-title { font-size: 18px; font-weight: 800; margin-bottom: 1.25rem; }
+  .todo-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 0.75rem; }
+  .todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border-radius: 8px; transition: background 0.1s; }
+  .todo-item:hover { background: var(--surface2); }
+  .todo-item:hover .todo-del { opacity: 1; }
+  .todo-check { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--border2); background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; cursor: pointer; margin-top: 1px; transition: all 0.15s; }
+  .todo-item.checked .todo-check { background: var(--bull); border-color: var(--bull); color: #000; }
+  .todo-text { flex: 1; font-size: 14px; line-height: 1.5; cursor: pointer; word-break: break-word; }
+  .todo-item.checked .todo-text { text-decoration: line-through; color: var(--muted); }
+  .todo-del { opacity: 0; background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 14px; flex-shrink: 0; transition: opacity 0.15s; }
+  .todo-del:hover { color: var(--bear); }
+  .todo-input { width: 100%; background: var(--bg); border: 0.5px solid var(--border2); border-radius: 8px; padding: 10px 14px; font-family: var(--font-head); font-size: 14px; color: var(--text); outline: none; margin-top: 0.5rem; }
+  .todo-input:focus { border-color: var(--accent); }
+  .todo-empty { font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding: 0.5rem 0; }
 </style>
 </head>
+
 <body>
 
 <nav class="nav">
@@ -297,19 +447,20 @@
     <div class="nav-left">
       <img src="data:image/png;base64,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" class="nav-logo-img" alt="Logo"><div class="nav-logo">The Forex <span>Briefing</span></div>
     </div>
-	<div class="nav-right">
-	  <div class="nav-week" id="navWeek">Loading...</div>
-	</div>
     <div class="nav-tabs">
       <button class="nav-tab macro-tab active" id="tab-macro" onclick="showPage('macro',this)">📅 Macro Events</button>
       <button class="nav-tab analysis-tab" id="tab-analysis" onclick="showPage('analysis',this)">📊 Technical Analysis</button>
-      <button class="nav-tab strategy-tab" id="tab-strategy" onclick="showPage('strategy',this)">📋 Strategy Plan</button>
+      <button class="nav-tab strategy-tab" id="tab-strategy" onclick="showPage('strategy',this)">📋 Strategy</button>
       <button class="nav-tab principles-tab" id="tab-principles" onclick="showPage('principles',this)">💡 Key Principles</button>
       <button class="nav-tab investments-tab" id="tab-investments" onclick="showPage('investments',this)">💼 Investments</button>
       <button class="nav-tab journal-tab" id="tab-journal" onclick="showPage('journal',this)">📓 Trading Journal</button>
       <button class="nav-tab hundred-tab" id="tab-hundred" onclick="showPage('hundred',this)">🎯 100 Trades</button>
+      <button class="nav-tab checklist-tab" id="tab-checklist" onclick="showPage('checklist',this)">✅ Checklist</button>
+      <button class="nav-tab performance-tab" id="tab-performance" onclick="showPage('performance',this)">📈 Performance</button>
+      <button class="nav-tab risk-tab" id="tab-risk" onclick="showPage('risk',this)">🧮 Risk Calc</button>
       <button class="nav-tab settings-tab" id="tab-settings" onclick="showPage('settings',this)">⚙️</button>
     </div>
+    <div class="nav-week" id="navWeek" style="flex-shrink:0;margin-left:8px;cursor:pointer" onclick="showPage('calendar', null)" title="Open calendar & to-do list">Loading...</div>
   </div>
 </nav>
 
@@ -430,10 +581,12 @@
   <div class="section">
     <div class="section-title" style="margin-bottom:1rem">Strategy rules</div>
     <div class="info-note" style="margin:0">
-      <span>Trend:</span> Weekly / Daily / 4H at least 2 align<br><br>
+      <span>Trend:</span> Strong Weekly / Daily / · 4H At least 2 align · 50 EMA support<br><br>
       <span>AOI:</span> Weekly + Daily analysed separately · Min 3 touches · A touch = market structure point whose body closes within or at the zone and rejects back out · Max 60 pips wide · W+D zones within 30 pips combined into confluence zone · All zones within largest trend structure shown. Max lookback: <span>2 years Daily · 2 years Weekly</span>.<br><br>
+	  <span>50 EMA:</span> EMA Confirmation · Price above 50 EMA (bullish support) or below 50 EMA (bearish resistance) · Trend aligns
+	  <br><br>
       <span>Entry:</span> H&S or inverted H&S at AOI · Break and retest of structure · Engulfing confirmation on 4H / 2H · SL 5–10 pips within AOI · TP at minimum 1:2 risk to reward<br><br>
-      <span>Rules:</span> Trade Mon–Thu only · London / NY session 08:00–17:30 GMT · Max 3 trades/week · Only trade with trend · Set and forget! · If you can't explain the trade, you don't have one<br><br>
+      <span>Rules:</span> Trade Mon–Thu only · London / NY session 10:00–19:30 GMT+2 · Max 3 trades/week · Only trade with trend · Set and forget! · If you can't explain the trade, you don't have one<br><br>
       <span>Data:</span> Powered by Twelve Data · Results persist until end of Friday each week
     </div>
   </div>
@@ -441,7 +594,7 @@
 
 <!-- STRATEGY PLAN PAGE -->
 <div class="page" id="page-strategy">
-  <div class="page-title">Strategy Plan</div>
+  <div class="page-title">Strategy</div>
   <div class="page-sub">Your trading framework</div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
@@ -587,6 +740,215 @@
       </thead>
       <tbody id="hundredTableBody"></tbody>
     </table>
+  </div>
+</div>
+
+<!-- SPLASH SCREEN -->
+<div class="splash" id="splashScreen">
+  <img src="data:image/png;base64,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" class="splash-logo" alt="Logo">
+  <div class="splash-title">The Forex <span>Briefing</span></div>
+  <div class="splash-sub">Loading your trading dashboard...</div>
+  <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
+</div>
+
+<!-- CHECKLIST PAGE -->
+<div class="page" id="page-checklist">
+  <div class="page-title">Trade Checklist</div>
+  <div class="page-sub">All boxes must be checked before taking a trade</div>
+  <div class="checklist-card">
+    <div class="checklist-title">Pre-Trade Checklist</div>
+	<div class="checklist-sub">Trade Mon–Thu only · London / NY session 08:00–17:30 GMT</div>
+    <div class="checklist-items" id="checklistItems">
+      <div class="checklist-item" id="ci-trend" onclick="toggleCheck('trend')">
+        <div class="check-box" id="cb-trend"></div>
+        <div>
+          <div class="check-item-label">Trend Identified</div>
+        </div>
+      </div>
+      <div class="checklist-item" id="ci-aoi" onclick="toggleCheck('aoi')">
+        <div class="check-box" id="cb-aoi"></div>
+        <div>
+          <div class="check-item-label">Area of Interest (AOI)</div>
+        </div>
+      </div>
+      <div class="checklist-item" id="ci-ema" onclick="toggleCheck('ema')">
+        <div class="check-box" id="cb-ema"></div>
+        <div>
+          <div class="check-item-label">50 EMA Confirmation</div>
+        </div>
+      </div>
+      <div class="checklist-item" id="ci-entry" onclick="toggleCheck('entry')">
+        <div class="check-box" id="cb-entry"></div>
+        <div>
+          <div class="check-item-label">Entry Signal</div>
+        </div>
+      </div>
+    </div>
+    <div class="checklist-verdict verdict-not-ready" id="checklistVerdict">
+      Complete all 4 checks to confirm your trade
+    </div>
+    <button class="checklist-reset" onclick="resetChecklist()">↺ Reset checklist</button>
+  </div>
+</div>
+
+<!-- PERFORMANCE DASHBOARD PAGE -->
+<div class="page" id="page-performance">
+  <div class="page-title">Performance Dashboard</div>
+  <div class="page-sub">Your trading statistics by year</div>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:2rem;flex-wrap:wrap">
+    <select class="perf-year-select" id="perfYearSelect" onchange="renderPerformance()" style="margin-bottom:0"></select>
+    <span style="font-family:var(--font-mono);font-size:12px;color:var(--muted)">Select year to view stats</span>
+  </div>
+  <div class="perf-stats">
+    <div class="perf-stat"><div class="perf-stat-label">Total trades</div><div class="perf-stat-val blue" id="ps-trades">—</div></div>
+    <div class="perf-stat"><div class="perf-stat-label">Win rate</div><div class="perf-stat-val green" id="ps-winrate">—</div></div>
+    <div class="perf-stat"><div class="perf-stat-label">Total P&L</div><div class="perf-stat-val" id="ps-pl">—</div></div>
+    <div class="perf-stat"><div class="perf-stat-label">Avg monthly P&L</div><div class="perf-stat-val" id="ps-avg">—</div></div>
+    <div class="perf-stat"><div class="perf-stat-label">Best month</div><div class="perf-stat-val green" id="ps-best">—</div></div>
+    <div class="perf-stat"><div class="perf-stat-label">Worst month</div><div class="perf-stat-val red" id="ps-worst">—</div></div>
+    <div class="perf-stat"><div class="perf-stat-label">Total wins</div><div class="perf-stat-val green" id="ps-wins">—</div></div>
+    <div class="perf-stat"><div class="perf-stat-label">Total losses</div><div class="perf-stat-val red" id="ps-losses">—</div></div>
+  </div>
+  <div class="section-title" style="margin-bottom:1rem">Monthly breakdown</div>
+  <div class="month-perf-grid" id="monthPerfGrid"></div>
+</div>
+
+<!-- RISK CALCULATOR PAGE -->
+<div class="page" id="page-risk">
+  <div class="page-title">Risk Calculator</div>
+  <div class="page-sub">Calculate your lot size · Uses live rates via your API key</div>
+  <div class="risk-card">
+    <div class="risk-grid">
+      <div class="risk-field">
+        <div class="risk-label">Account balance (ZAR)</div>
+        <input class="risk-input" id="riskBalance" type="number" placeholder="e.g. 10000" oninput="calcRisk()"/>
+      </div>
+      <div class="risk-field">
+        <div class="risk-label">Risk %</div>
+        <input class="risk-input" id="riskPct" type="number" placeholder="e.g. 2" step="0.1" min="0.1" max="10" oninput="calcRisk()"/>
+      </div>
+      <div class="risk-field">
+        <div class="risk-label">Currency pair</div>
+        <select class="risk-select" id="riskPair" onchange="calcRisk()">
+          <option value="">Select pair...</option>
+          <option>NZD/USD</option><option>USD/CAD</option><option>USD/JPY</option>
+          <option>CAD/JPY</option><option>GBP/CAD</option><option>EUR/JPY</option>
+          <option>NZD/CAD</option><option>EUR/GBP</option><option>GBP/AUD</option>
+          <option>GBP/USD</option><option>GBP/JPY</option><option>GBP/NZD</option>
+          <option>AUD/JPY</option><option>AUD/USD</option><option>AUD/CAD</option>
+          <option>AUD/NZD</option><option>USD/CHF</option><option>EUR/USD</option>
+          <option>EUR/NZD</option><option>GBP/CHF</option><option>AUD/CHF</option><option>EUR/CHF</option>
+        </select>
+      </div>
+      <div class="risk-field">
+        <div class="risk-label">Stop loss (pips)</div>
+        <input class="risk-input" id="riskSL" type="number" placeholder="e.g. 20" oninput="calcRisk()"/>
+      </div>
+    </div>
+
+    <div class="risk-result" id="riskResult" style="display:none">
+      <div class="risk-result-title">Calculation result</div>
+      <div class="risk-result-rows">
+        <div class="risk-result-row">
+          <span class="risk-result-label">Risk amount (ZAR)</span>
+          <span class="risk-result-val" id="rr-riskamt">—</span>
+        </div>
+        <div class="risk-result-row">
+          <span class="risk-result-label">Pip value (ZAR per lot)</span>
+          <span class="risk-result-val" id="rr-pipval">—</span>
+        </div>
+        <div class="risk-result-row">
+          <span class="risk-result-label">Lot size</span>
+          <span class="risk-result-val highlight" id="rr-lotsize">—</span>
+        </div>
+        <div class="risk-result-row">
+          <span class="risk-result-label">Max loss (ZAR)</span>
+          <span class="risk-result-val" id="rr-maxloss">—</span>
+        </div>
+      </div>
+      <div class="risk-note" id="riskNote"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:0.5rem">
+      <button class="btn-calc" style="flex:1" onclick="calcRisk()">Calculate</button>
+      <button onclick="clearRiskCalc()" style="background:transparent;border:0.5px solid var(--border2);color:var(--muted);font-family:var(--font-mono);font-size:12px;padding:13px 18px;border-radius:10px;cursor:pointer;white-space:nowrap">Clear</button>
+    </div>
+    <div id="riskError" style="font-family:var(--font-mono);font-size:12px;color:var(--bear);margin-top:1rem;display:none"></div>
+  </div>
+</div>
+
+<!-- CALENDAR & TO-DO PAGE -->
+<div class="page" id="page-calendar">
+  <div class="page-title">Calendar & To-Do</div>
+  <div class="page-sub">Trading week schedule, high-impact news and your personal to-do list</div>
+
+  <div class="cal-todo-grid">
+    <div class="cal-card">
+      <div class="cal-header">
+        <div class="cal-title" id="calMonthLabel">Month Year</div>
+        <div class="cal-nav-group">
+          <button class="cal-nav-btn" onclick="calPrevMonth()">‹</button>
+          <button class="cal-nav-btn" onclick="calToday()" title="Jump to today" style="font-size:11px;font-family:var(--font-mono)">●</button>
+          <button class="cal-nav-btn" onclick="calNextMonth()">›</button>
+        </div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div style="display:flex;gap:16px;margin-top:1rem;font-family:var(--font-mono);font-size:11px;color:var(--muted)">
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:rgba(255,77,109,0.5);display:inline-block"></span>High-impact news</div>
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:rgba(79,142,247,0.5);display:inline-block"></span>Your events</div>
+      </div>
+    </div>
+
+    <div class="todo-card">
+      <div class="todo-title">To-Do List</div>
+      <div class="todo-list" id="todoList"></div>
+      <input class="todo-input" id="todoInput" placeholder="Type a task and press Enter..." onkeydown="if(event.key==='Enter'){addTodo();event.preventDefault();}">
+    </div>
+  </div>
+</div>
+
+<!-- EVENT PANEL (modal) -->
+<div class="event-panel-overlay" id="eventPanelOverlay" onclick="if(event.target===this) closeEventPanel()">
+  <div class="event-panel">
+    <div class="event-panel-title">Day events</div>
+    <div class="event-panel-date" id="eventPanelDate"></div>
+
+    <div class="event-list-existing" id="eventListExisting"></div>
+
+    <div class="event-form-label">Event description</div>
+    <input class="event-form-input" id="eventDesc" placeholder="e.g. Review GBP/JPY setup">
+
+    <div class="event-form-label">Time type</div>
+    <div class="toggle-time-mode">
+      <button class="time-mode-btn active" id="modeAllDay" onclick="setEventTimeMode('allday')">All day</button>
+      <button class="time-mode-btn" id="modeSingle" onclick="setEventTimeMode('single')">Specific time</button>
+      <button class="time-mode-btn" id="modeRange" onclick="setEventTimeMode('range')">Start / End time</button>
+    </div>
+
+    <div id="singleTimeField" style="display:none">
+      <div class="event-form-label">Time</div>
+      <input class="event-form-input" id="eventTimeSingle" type="time">
+    </div>
+
+    <div id="rangeTimeFields" style="display:none">
+      <div class="event-form-label">Start / End time</div>
+      <div class="event-time-row">
+        <div><input class="event-form-input" id="eventTimeStart" type="time"></div>
+        <div><input class="event-form-input" id="eventTimeEnd" type="time"></div>
+      </div>
+    </div>
+
+    <div class="event-form-label">Repeat</div>
+    <select class="event-form-input" id="eventRepeat">
+      <option value="none">Does not repeat</option>
+      <option value="daily">Daily</option>
+      <option value="weekly">Weekly</option>
+      <option value="yearly">Yearly</option>
+    </select>
+
+    <div class="event-form-buttons">
+      <button class="btn btn-primary" style="flex:1" onclick="saveEvent()">Add event</button>
+      <button class="btn btn-secondary" onclick="closeEventPanel()">Close</button>
+    </div>
   </div>
 </div>
 
@@ -753,7 +1115,13 @@ function parseFForexFactoryRSS(xmlText) {
     if(previous) desc += ` · Previous: ${previous}`;
     desc += '. Check forexfactory.com for full analysis.';
 
-    events.push({ day, time: displayTime, name: title, impact: impactLevel, currency, desc, pairs });
+    // Store actual date (YYYY-MM-DD) for calendar matching
+    let dateStr = null;
+    if(!isNaN(d)) {
+      dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    events.push({ day, time: displayTime, name: title, impact: impactLevel, currency, desc, pairs, date: dateStr });
   });
 
   // Sort by day order
@@ -852,25 +1220,24 @@ let scanTotal = 0;
 // ── WEEK DATE HELPERS ──
 // When opened on Saturday or Sunday, show the UPCOMING week (Mon–Fri)
 // When opened Mon–Fri, show the CURRENT week
+// Trading week runs Saturday 00:00 → Friday 23:59.
+// Returns the Saturday that starts the trading week containing "today".
 function getUpcomingWeekMonday() {
   const d = new Date();
-  const day = d.getDay(); // 0=Sun, 1=Mon ... 6=Sat
-  let daysUntilMon;
-  if(day === 0) daysUntilMon = 1;       // Sunday → next Monday
-  else if(day === 6) daysUntilMon = 2;  // Saturday → Monday after
-  else daysUntilMon = -(day - 1);       // Mon–Fri → this week's Monday
-  const mon = new Date(d);
-  mon.setDate(d.getDate() + daysUntilMon);
-  mon.setHours(0,0,0,0);
-  return mon;
+  const day = d.getDay(); // 0=Sun..6=Sat
+  const offset = (day === 6) ? 0 : (day + 1); // days since last Saturday
+  const start = new Date(d);
+  start.setDate(d.getDate() - offset);
+  start.setHours(0,0,0,0);
+  return start; // Saturday 00:00
 }
 
 function getWeekDates() {
-  const mon = getUpcomingWeekMonday();
+  const sat = getUpcomingWeekMonday(); // Saturday start of trading week
   const dates = {};
-  ['MON','TUE','WED','THU','FRI'].forEach((day, i) => {
-    const d = new Date(mon);
-    d.setDate(mon.getDate() + i);
+  ['SAT','SUN','MON','TUE','WED','THU','FRI'].forEach((day, i) => {
+    const d = new Date(sat);
+    d.setDate(sat.getDate() + i);
     dates[day] = d;
   });
   return dates;
@@ -882,9 +1249,9 @@ function getWeekKey() {
   return `forex_results_${mon.getFullYear()}_${mon.getMonth()}_${mon.getDate()}`;
 }
 function getFridayEnd() {
-  const mon = getUpcomingWeekMonday();
-  const fri = new Date(mon);
-  fri.setDate(mon.getDate() + 4);
+  const sat = getUpcomingWeekMonday(); // Saturday start
+  const fri = new Date(sat);
+  fri.setDate(sat.getDate() + 6); // Saturday + 6 = Friday
   fri.setHours(23,59,59,999);
   return fri;
 }
@@ -911,11 +1278,11 @@ function init() {
   clearOldCaches();
   clearOldMacroCaches();
 
-  const mon = getUpcomingWeekMonday();
-  const fri = new Date(mon); fri.setDate(mon.getDate() + 4);
+  const sat = getUpcomingWeekMonday(); // Saturday start of trading week
+  const fri = new Date(sat); fri.setDate(sat.getDate() + 6); // Saturday + 6 = Friday
   const fmt      = x => x.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
   const fmtShort = x => x.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-  const weekStr  = `${fmtShort(mon)} – ${fmt(fri)}`;
+  const weekStr  = `${fmtShort(sat)} – ${fmt(fri)}`;
   document.getElementById('navWeek').textContent = weekStr;
   document.getElementById('macroSubtitle').textContent = `Week of ${weekStr}`;
 
@@ -1118,135 +1485,140 @@ async function fetchCandles(pair, interval, size) {
   }));
 }
 
-// ── TREND DETECTION — Exact market structure tracking ──
+// ── TREND DETECTION — Close-price only (matches TradingView line chart) ──
 //
-// Bullish continuation : close ABOVE current HH → new HH confirmed
-//                        lowest low between old HH idx and new HH idx = new HL
-// Bearish continuation : close BELOW current LL → new LL confirmed
-//                        highest high between old LL idx and new LL idx = new LH
-// CHoCH bear→bull      : close ABOVE current LH → trend flips bullish
-//                        break candle high = new HH
-//                        lowest low between old LH idx and break idx = new HL
-// CHoCH bull→bear      : close BELOW current HL → trend flips bearish
-//                        break candle low = new LL
-//                        highest high between old HL idx and break idx = new LH
-// Between structure pts : absolutely nothing changes
-// Only CLOSES trigger changes — never wicks
+// You identify market structure using TradingView's LINE CHART mode,
+// which plots closes only. Therefore ALL swing point detection and
+// structure comparisons use candle.close exclusively — never high/low wicks.
+//
+// A swing high = close higher than the 2 closes on each side
+// A swing low  = close lower  than the 2 closes on each side
+//
+// Full pivot sequence approach:
+// 1. Scan all closes for swing points
+// 2. Build clean alternating H/L sequence (keep most extreme between direction changes)
+// 3. Most recent pivot type = current trend direction
+// 4. Walk back through full sequence to find dominant (outermost unbroken) structure
+// 5. Return trend direction only — key levels not needed (done manually on TradingView)
 
 function detectTrendStructure(candles) {
   if(!candles || candles.length < 10) return { trend:'neutral', keyHigh:null, keyLow:null };
 
-  // ── Step 1: Find the most recent significant swing points ──
-  // Rather than seeding from the absolute extremes of the full dataset
-  // (which can be years old and cause the forward walk to lose track),
-  // we find the most recent swing high and swing low within the last
-  // 20% of candles to establish a recent anchor point, then walk forward.
-  //
-  // A swing high = candle whose high is higher than the 3 candles either side
-  // A swing low  = candle whose low  is lower  than the 3 candles either side
+  const n = candles.length;
+  const closes = candles.map(c => c.close);
 
-  const lookback = Math.max(20, Math.floor(candles.length * 0.2));
-  const recentStart = candles.length - lookback;
+  // ── Step 1: Find all swing highs and lows using CLOSES ONLY ──
+  const pivots = []; // { idx, type:'H'|'L', price (= close) }
 
-  // Find most recent swing high and swing low in the recent window
-  let recentSwingHighIdx = -1, recentSwingLowIdx = -1;
-  for(let i = candles.length - 4; i >= recentStart; i--) {
-    if(recentSwingHighIdx === -1 &&
-       candles[i].high > candles[i-1].high && candles[i].high > candles[i-2].high &&
-       candles[i].high > candles[i+1].high && candles[i].high > candles[i+2].high) {
-      recentSwingHighIdx = i;
-    }
-    if(recentSwingLowIdx === -1 &&
-       candles[i].low < candles[i-1].low && candles[i].low < candles[i-2].low &&
-       candles[i].low < candles[i+1].low && candles[i].low < candles[i+2].low) {
-      recentSwingLowIdx = i;
-    }
-    if(recentSwingHighIdx !== -1 && recentSwingLowIdx !== -1) break;
+  for(let i = 2; i < n - 2; i++) {
+    const c = closes[i];
+    const isHigh = c > closes[i-1] && c > closes[i-2] && c > closes[i+1] && c > closes[i+2];
+    const isLow  = c < closes[i-1] && c < closes[i-2] && c < closes[i+1] && c < closes[i+2];
+    if(isHigh) pivots.push({ idx:i, type:'H', price: c });
+    if(isLow)  pivots.push({ idx:i, type:'L', price: c });
   }
 
-  // Fallback to absolute extremes if no swing points found in recent window
-  if(recentSwingHighIdx === -1 || recentSwingLowIdx === -1) {
-    for(let i = 1; i < candles.length; i++) {
-      if(recentSwingHighIdx === -1 || candles[i].high > candles[recentSwingHighIdx].high) recentSwingHighIdx = i;
-      if(recentSwingLowIdx  === -1 || candles[i].low  < candles[recentSwingLowIdx].low)  recentSwingLowIdx  = i;
-    }
+  // Fallback: not enough pivots
+  if(pivots.length < 2) {
+    const maxClose = Math.max(...closes);
+    const minClose = Math.min(...closes);
+    const maxIdx   = closes.indexOf(maxClose);
+    const minIdx   = closes.indexOf(minClose);
+    return { trend: maxIdx > minIdx ? 'bullish' : 'bearish', keyHigh: maxClose, keyLow: minClose };
   }
 
-  // ── Step 2: Seed from the most recent swing points ──
-  // Now walk backwards from the more recent of the two swing points
-  // to find the broader structure context — specifically the confirmed
-  // HH/HL or LH/LL that currently applies
-  //
-  // Seed: whichever swing point is more recent tells us current trend
-  let trend, keyHigh, keyLow, keyHighIdx, keyLowIdx;
-
-  if(recentSwingHighIdx > recentSwingLowIdx) {
-    // Most recent significant point is a high → price just pushed up → bullish
-    trend      = 'bullish';
-    keyHigh    = candles[recentSwingHighIdx].high;
-    keyHighIdx = recentSwingHighIdx;
-    // HL = lowest low between the swing low and the swing high
-    keyLow     = Math.min(...candles.slice(recentSwingLowIdx, recentSwingHighIdx + 1).map(c => c.low));
-    keyLowIdx  = recentSwingLowIdx;
-  } else {
-    // Most recent significant point is a low → price just pushed down → bearish
-    trend      = 'bearish';
-    keyLow     = candles[recentSwingLowIdx].low;
-    keyLowIdx  = recentSwingLowIdx;
-    // LH = highest high between the swing high and the swing low
-    keyHigh    = Math.max(...candles.slice(recentSwingHighIdx, recentSwingLowIdx + 1).map(c => c.high));
-    keyHighIdx = recentSwingHighIdx;
-  }
-
-  // ── Step 3: Walk forward from after the seed swing points ──
-  const startIdx = Math.max(recentSwingHighIdx, recentSwingLowIdx) + 1;
-
-  for(let i = startIdx; i < candles.length; i++) {
-    const close = candles[i].close;
-    const high  = candles[i].high;
-    const low   = candles[i].low;
-
-    if(trend === 'bullish') {
-      if(close < keyLow) {
-        // ── CHoCH: bullish → bearish ──
-        const newLH = Math.max(...candles.slice(keyLowIdx, i + 1).map(c => c.high));
-        trend      = 'bearish';
-        keyLow     = low;
-        keyHigh    = newLH;
-        keyLowIdx  = i;
-        keyHighIdx = i;
-      } else if(close > keyHigh) {
-        // ── New HH confirmed ──
-        const newHL = Math.min(...candles.slice(keyHighIdx, i + 1).map(c => c.low));
-        keyHigh    = high;
-        keyLow     = newHL;
-        keyHighIdx = i;
-        keyLowIdx  = i;
-      }
-      // else: between HH and HL → no change
-
+  // ── Step 2: Clean into alternating H/L sequence ──
+  // Consecutive same-type pivots → keep only the most extreme
+  const clean = [pivots[0]];
+  for(let i = 1; i < pivots.length; i++) {
+    const last = clean[clean.length - 1];
+    if(pivots[i].type === last.type) {
+      if(pivots[i].type === 'H' && pivots[i].price > last.price) clean[clean.length-1] = pivots[i];
+      if(pivots[i].type === 'L' && pivots[i].price < last.price) clean[clean.length-1] = pivots[i];
     } else {
-      if(close > keyHigh) {
-        // ── CHoCH: bearish → bullish ──
-        const newHL = Math.min(...candles.slice(keyHighIdx, i + 1).map(c => c.low));
-        trend      = 'bullish';
-        keyHigh    = high;
-        keyLow     = newHL;
-        keyHighIdx = i;
-        keyLowIdx  = i;
-      } else if(close < keyLow) {
-        // ── New LL confirmed ──
-        const newLH = Math.max(...candles.slice(keyLowIdx, i + 1).map(c => c.high));
-        keyLow     = low;
-        keyHigh    = newLH;
-        keyLowIdx  = i;
-        keyHighIdx = i;
-      }
-      // else: between LH and LL → no change
+      clean.push(pivots[i]);
     }
   }
 
-  return { trend, keyHigh, keyLow };
+  if(clean.length < 2) {
+    const p = clean[0];
+    return { trend: p.type==='H' ? 'bullish' : 'bearish', keyHigh: p.price, keyLow: p.price };
+  }
+
+  // ── Step 3: Determine trend from most recent pivot ──
+  const lastPivot    = clean[clean.length - 1];
+  const currentClose = closes[n - 1];
+  let trend          = lastPivot.type === 'H' ? 'bullish' : 'bearish';
+
+  // ── Step 4: Find dominant structure ──
+  // Walk back to check if current structure sits inside a LARGER unbroken structure
+  // For bullish: is there a higher close-high that current price hasn't closed above?
+  // For bearish: is there a lower close-low that current price hasn't closed below?
+  // The outermost unbroken structure is the dominant trend
+
+  let dominantHigh = null;
+  let dominantLow  = null;
+
+  if(trend === 'bullish') {
+    // Find most recent H pivot and the L before it
+    let recentH = null, recentL = null;
+    for(let i = clean.length - 1; i >= 0; i--) {
+      if(!recentH && clean[i].type === 'H') { recentH = clean[i]; }
+      if(recentH && !recentL && clean[i].type === 'L') { recentL = clean[i]; break; }
+    }
+    dominantHigh = recentH ? recentH.price : null;
+    dominantLow  = recentL ? recentL.price : null;
+
+    // Walk further back — if larger H exists that close hasn't broken, it's dominant
+    if(recentH) {
+      const startIdx = clean.indexOf(recentH) - 1;
+      for(let i = startIdx; i >= 0; i--) {
+        if(clean[i].type === 'H' && clean[i].price > dominantHigh && currentClose < clean[i].price) {
+          dominantHigh = clean[i].price;
+          for(let j = i - 1; j >= 0; j--) {
+            if(clean[j].type === 'L') { dominantLow = clean[j].price; break; }
+          }
+        }
+      }
+    }
+
+  } else {
+    // Find most recent L pivot and the H before it
+    let recentL = null, recentH = null;
+    for(let i = clean.length - 1; i >= 0; i--) {
+      if(!recentL && clean[i].type === 'L') { recentL = clean[i]; }
+      if(recentL && !recentH && clean[i].type === 'H') { recentH = clean[i]; break; }
+    }
+    dominantLow  = recentL ? recentL.price : null;
+    dominantHigh = recentH ? recentH.price : null;
+
+    // Walk further back — if larger L exists that close hasn't broken, it's dominant
+    if(recentL) {
+      const startIdx = clean.indexOf(recentL) - 1;
+      for(let i = startIdx; i >= 0; i--) {
+        if(clean[i].type === 'L' && clean[i].price < dominantLow && currentClose > clean[i].price) {
+          dominantLow = clean[i].price;
+          for(let j = i - 1; j >= 0; j--) {
+            if(clean[j].type === 'H') { dominantHigh = clean[j].price; break; }
+          }
+        }
+      }
+    }
+  }
+
+  // ── Step 5: Fallback if dominant levels not found ──
+  if(!dominantHigh || !dominantLow) {
+    for(let i = clean.length - 1; i >= 1; i--) {
+      if(clean[i].type !== clean[i-1].type) {
+        dominantHigh = clean[i].type === 'H' ? clean[i].price : clean[i-1].price;
+        dominantLow  = clean[i].type === 'L' ? clean[i].price : clean[i-1].price;
+        trend = clean[i].type === 'H' ? 'bullish' : 'bearish';
+        break;
+      }
+    }
+  }
+
+  return { trend, keyHigh: dominantHigh, keyLow: dominantLow };
 }
 
 // Convenience wrapper
@@ -2197,15 +2569,717 @@ function renderHundred() {
 }
 
 // ══════════════════════════════════════════════════════
-// ── INITIALISE EVERYTHING ONCE DOM IS FULLY READY ──
+// ── SPLASH SCREEN ──
 // ══════════════════════════════════════════════════════
+function hideSplash() {
+  const splash = document.getElementById('splashScreen');
+  if(!splash) return;
+  setTimeout(() => {
+    splash.classList.add('fade-out');
+    setTimeout(() => splash.style.display = 'none', 650);
+  }, 1900);
+}
+
+// ══════════════════════════════════════════════════════
+// ── DARK / LIGHT MODE ──
+// ══════════════════════════════════════════════════════
+function initTheme() {
+  const saved = localStorage.getItem('forex_theme');
+  if(saved === 'light') {
+    document.body.classList.add('light-mode');
+    const tog = document.getElementById('themeToggle');
+    if(tog) tog.checked = true;
+  }
+}
+
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light-mode');
+  localStorage.setItem('forex_theme', isLight ? 'light' : 'dark');
+}
+
+// ══════════════════════════════════════════════════════
+// ── IMPORT / EXPORT ──
+// ══════════════════════════════════════════════════════
+function exportData() {
+  const data = {
+    version: 1,
+    exported: new Date().toISOString(),
+    strategy:        JSON.parse(localStorage.getItem('forex_strategy')        || 'null'),
+    principles:      JSON.parse(localStorage.getItem('forex_principles')      || '[]'),
+    investments:     JSON.parse(localStorage.getItem('forex_investments')     || '[]'),
+    journal_trades:  JSON.parse(localStorage.getItem('forex_journal_trades')  || '{}'),
+    journal_notes:   JSON.parse(localStorage.getItem('forex_journal_notes')   || '{}'),
+    hundred:         JSON.parse(localStorage.getItem('forex_hundred')         || '[]'),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `forex_briefing_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if(!data.version) throw new Error('Invalid file format');
+      if(!confirm('This will replace all your current data. Are you sure?')) return;
+      if(data.strategy)       localStorage.setItem('forex_strategy',        JSON.stringify(data.strategy));
+      if(data.principles)     localStorage.setItem('forex_principles',      JSON.stringify(data.principles));
+      if(data.investments)    localStorage.setItem('forex_investments',     JSON.stringify(data.investments));
+      if(data.journal_trades) localStorage.setItem('forex_journal_trades',  JSON.stringify(data.journal_trades));
+      if(data.journal_notes)  localStorage.setItem('forex_journal_notes',   JSON.stringify(data.journal_notes));
+      if(data.hundred)        localStorage.setItem('forex_hundred',         JSON.stringify(data.hundred));
+      alert('Data imported successfully. Reloading...');
+      location.reload();
+    } catch(err) {
+      alert('Import failed: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ══════════════════════════════════════════════════════
+// ── CHECKLIST ──
+// ══════════════════════════════════════════════════════
+const CHECK_KEYS = ['trend','aoi','ema','entry'];
+let checkState = { trend:false, aoi:false, ema:false, entry:false };
+
+function loadChecklist() {
+  const saved = localStorage.getItem('forex_checklist');
+  if(saved) try { checkState = JSON.parse(saved); } catch(e) {}
+  renderChecklist();
+}
+
+function toggleCheck(key) {
+  checkState[key] = !checkState[key];
+  localStorage.setItem('forex_checklist', JSON.stringify(checkState));
+  renderChecklist();
+}
+
+function resetChecklist() {
+  CHECK_KEYS.forEach(k => checkState[k] = false);
+  localStorage.setItem('forex_checklist', JSON.stringify(checkState));
+  renderChecklist();
+}
+
+function renderChecklist() {
+  CHECK_KEYS.forEach(key => {
+    const item = document.getElementById('ci-' + key);
+    const box  = document.getElementById('cb-' + key);
+    if(!item || !box) return;
+    if(checkState[key]) {
+      item.classList.add('checked');
+      box.textContent = '✓';
+    } else {
+      item.classList.remove('checked');
+      box.textContent = '';
+    }
+  });
+  const allChecked = CHECK_KEYS.every(k => checkState[k]);
+  const verdict = document.getElementById('checklistVerdict');
+  if(!verdict) return;
+  if(allChecked) {
+    verdict.className = 'checklist-verdict verdict-ready';
+    verdict.textContent = '✦ All boxes checked — you can take this trade';
+  } else {
+    const remaining = CHECK_KEYS.filter(k => !checkState[k]).length;
+    verdict.className = 'checklist-verdict verdict-not-ready';
+    verdict.textContent = `${remaining} condition${remaining > 1 ? 's' : ''} remaining — do not enter yet`;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// ── PERFORMANCE DASHBOARD ──
+// ══════════════════════════════════════════════════════
+function initPerformance() {
+  const select = document.getElementById('perfYearSelect');
+  if(!select) return;
+  const years = [...new Set(Object.keys(journalTrades).map(k => k.split('-')[0]))].sort((a,b) => b-a);
+  const now = new Date().getFullYear().toString();
+  if(!years.includes(now)) years.unshift(now);
+  select.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
+  renderPerformance();
+}
+
+function renderPerformance() {
+  const year = document.getElementById('perfYearSelect')?.value;
+  if(!year) return;
+
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  let totalTrades=0, totalWins=0, totalLosses=0, totalPL=0;
+  const monthData = [];
+
+  for(let m=1; m<=12; m++) {
+    const key = `${year}-${m}`;
+    const trades = journalTrades[key] || [];
+    if(trades.length === 0) continue;
+    const wins   = trades.filter(t => t.result === 'Win').length;
+    const losses = trades.filter(t => t.result === 'Loss').length;
+    const pl     = trades.reduce((s,t) => s + (parseFloat(t.pl)||0), 0);
+    totalTrades += trades.length;
+    totalWins   += wins;
+    totalLosses += losses;
+    totalPL     += pl;
+    monthData.push({ month: MONTHS[m-1], trades: trades.length, wins, losses, pl, key });
+  }
+
+  const fmt = v => `R ${v.toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  const wr  = totalTrades > 0 ? ((totalWins/totalTrades)*100).toFixed(1) + '%' : '—';
+  const avg = monthData.length > 0 ? fmt(totalPL / monthData.length) : '—';
+  const plsSorted = [...monthData].sort((a,b) => b.pl - a.pl);
+  const bestMonth  = plsSorted[0]  || null;
+  const worstMonth = plsSorted[plsSorted.length-1] || null;
+
+  document.getElementById('ps-trades').textContent  = totalTrades || '—';
+  document.getElementById('ps-winrate').textContent = wr;
+  document.getElementById('ps-pl').textContent      = totalTrades > 0 ? fmt(totalPL) : '—';
+  document.getElementById('ps-pl').className        = 'perf-stat-val ' + (totalPL >= 0 ? 'green' : 'red');
+  document.getElementById('ps-avg').textContent     = avg;
+  document.getElementById('ps-avg').className       = 'perf-stat-val ' + (totalPL >= 0 ? 'green' : 'red');
+  document.getElementById('ps-best').textContent    = bestMonth  ? bestMonth.month  : '—';
+  document.getElementById('ps-worst').textContent   = worstMonth ? worstMonth.month : '—';
+  document.getElementById('ps-wins').textContent    = totalWins   || '—';
+  document.getElementById('ps-losses').textContent  = totalLosses || '—';
+
+  const grid = document.getElementById('monthPerfGrid');
+  if(!grid) return;
+  if(monthData.length === 0) {
+    grid.innerHTML = '<div style="font-family:var(--font-mono);font-size:13px;color:var(--muted);grid-column:1/-1">No trades recorded for ' + year + ' yet.</div>';
+    return;
+  }
+
+  grid.innerHTML = monthData.map(d => {
+    const isBest  = bestMonth  && d.key === bestMonth.key;
+    const isWorst = worstMonth && d.key === worstMonth.key && d.pl < 0;
+    const cls     = isBest ? 'month-perf-card best-month' : isWorst ? 'month-perf-card worst-month' : 'month-perf-card';
+    const wr2     = d.trades > 0 ? ((d.wins/d.trades)*100).toFixed(0) + '%' : '—';
+    return `<div class="${cls}">
+      <div class="month-perf-name">${d.month} ${year} ${isBest ? '🏆' : isWorst ? '📉' : ''}</div>
+      <div class="month-perf-row"><span>Trades</span><span>${d.trades}</span></div>
+      <div class="month-perf-row"><span>Win rate</span><span>${wr2}</span></div>
+      <div class="month-perf-row"><span>Wins / Losses</span><span style="color:var(--bull)">${d.wins}W</span> / <span style="color:var(--bear)">${d.losses}L</span></div>
+      <div class="month-perf-row"><span>P&L</span><span style="color:${d.pl>=0?'var(--bull)':'var(--bear)'};font-weight:700">${fmt(d.pl)}</span></div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// ── RISK CALCULATOR ──
+// ══════════════════════════════════════════════════════
+// Lot size formula (ZAR account):
+// 1. Risk amount (ZAR) = balance × risk%
+// 2. Pip value in quote currency:
+//    - Standard lot = 100,000 units of base currency
+//    - For non-JPY pairs: 1 pip = 0.0001 × 100,000 = 10 units of quote currency per lot
+//    - For JPY pairs:     1 pip = 0.01   × 100,000 = 1000 units of quote currency per lot
+// 3. Convert pip value to ZAR using live quote/ZAR rate
+// 4. Lot size = risk amount / (stop loss pips × pip value in ZAR)
+
+let riskRateCache = {};
+
+function saveRiskValues() {
+  const data = {
+    balance: document.getElementById('riskBalance').value,
+    pct:     document.getElementById('riskPct').value,
+    pair:    document.getElementById('riskPair').value,
+    sl:      document.getElementById('riskSL').value,
+  };
+  localStorage.setItem('forex_risk', JSON.stringify(data));
+}
+
+function loadRiskCalc() {
+  const raw = localStorage.getItem('forex_risk');
+  if(!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    if(d.balance) document.getElementById('riskBalance').value = d.balance;
+    if(d.pct)     document.getElementById('riskPct').value     = d.pct;
+    if(d.pair)    document.getElementById('riskPair').value    = d.pair;
+    if(d.sl)      document.getElementById('riskSL').value      = d.sl;
+    // Recalculate with restored values if all fields are present
+    if(d.balance && d.pct && d.pair && d.sl) calcRisk();
+  } catch(e) {}
+}
+
+function clearRiskCalc() {
+  localStorage.removeItem('forex_risk');
+  document.getElementById('riskBalance').value = '';
+  document.getElementById('riskPct').value     = '';
+  document.getElementById('riskPair').value    = '';
+  document.getElementById('riskSL').value      = '';
+  document.getElementById('riskResult').style.display = 'none';
+  document.getElementById('riskError').style.display  = 'none';
+}
+
+async function fetchRateToZAR(quoteCurrency) {
+  if(quoteCurrency === 'ZAR') return 1;
+  const cacheKey = quoteCurrency + '_ZAR';
+  if(riskRateCache[cacheKey]) return riskRateCache[cacheKey];
+  if(!apiKey) return null;
+  try {
+    const symbol = quoteCurrency + '/ZAR';
+    const r = await fetch(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(symbol)}&apikey=${apiKey}`);
+    const d = await r.json();
+    if(d.price) {
+      riskRateCache[cacheKey] = parseFloat(d.price);
+      return riskRateCache[cacheKey];
+    }
+    return null;
+  } catch(e) { return null; }
+}
+
+async function calcRisk() {
+  const balance = parseFloat(document.getElementById('riskBalance').value);
+  const riskPct = parseFloat(document.getElementById('riskPct').value);
+  const pair    = document.getElementById('riskPair').value;
+  const slPips  = parseFloat(document.getElementById('riskSL').value);
+  const errEl   = document.getElementById('riskError');
+  const resEl   = document.getElementById('riskResult');
+
+  // Save values every time any field changes
+  saveRiskValues();
+
+  errEl.style.display = 'none';
+  resEl.style.display = 'none';
+
+  if(!balance || !riskPct || !pair || !slPips) return;
+
+  const [base, quote] = pair.split('/');
+  const isJPY = quote === 'JPY';
+  const pipSize = isJPY ? 0.01 : 0.0001;
+  const unitsPerLot = 100000;
+  const pipValueQuote = pipSize * unitsPerLot;
+
+  let rateToZAR = null;
+  if(apiKey) {
+    document.getElementById('rr-pipval').textContent = 'Fetching rate...';
+    resEl.style.display = 'block';
+    rateToZAR = await fetchRateToZAR(quote);
+  }
+
+  if(!rateToZAR) {
+    const fallback = { USD:18.5, GBP:23.5, EUR:20.0, AUD:12.0, CAD:13.5, NZD:11.0, CHF:21.0, JPY:0.12 };
+    rateToZAR = fallback[quote] || 1;
+    document.getElementById('riskNote').textContent = `⚠ Live rate unavailable — using approximate rate of 1 ${quote} ≈ R ${rateToZAR}. Connect your API key for live rates.`;
+  } else {
+    document.getElementById('riskNote').textContent = `Live rate: 1 ${quote} = R ${rateToZAR.toFixed(4)} · Pip value calculated at market rate`;
+  }
+
+  const pipValueZAR = pipValueQuote * rateToZAR;
+  const riskAmount  = balance * (riskPct / 100);
+  const lotSize     = riskAmount / (slPips * pipValueZAR);
+  const maxLoss     = lotSize * slPips * pipValueZAR;
+
+  const fmt = (v, dec=2) => `R ${v.toLocaleString('en-ZA',{minimumFractionDigits:dec,maximumFractionDigits:dec})}`;
+
+  document.getElementById('rr-riskamt').textContent = fmt(riskAmount);
+  document.getElementById('rr-pipval').textContent  = fmt(pipValueZAR) + ' per lot';
+  document.getElementById('rr-lotsize').textContent = lotSize.toFixed(2) + ' lots';
+  document.getElementById('rr-maxloss').textContent = fmt(maxLoss);
+  resEl.style.display = 'block';
+}
+
+// ══════════════════════════════════════════════════════
+// ── UPDATE showPage TO HANDLE NEW TABS ──
+// ══════════════════════════════════════════════════════
+function showPage(page, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(page === 'principles')   requestAnimationFrame(() => renderPrinciples());
+  if(page === 'performance')  { initPerformance(); renderPerformance(); }
+  if(page === 'checklist')    renderChecklist();
+  if(page === 'risk')         loadRiskCalc();
+  if(page === 'calendar')     { renderCalendar(); renderTodo(); }
+}
+
+// ══════════════════════════════════════════════════════
+// ── SETTINGS PAGE: inject theme toggle + import/export ──
+// ══════════════════════════════════════════════════════
+function buildSettingsExtras() {
+  const settingsPage = document.getElementById('page-settings');
+  if(!settingsPage) return;
+  // Add theme toggle and import/export if not already added
+  if(document.getElementById('settingsExtras')) return;
+  const extras = document.createElement('div');
+  extras.id = 'settingsExtras';
+  extras.innerHTML = `
+    <div class="section" style="margin-top:0">
+      <div class="section-title" style="margin-bottom:1rem">Display</div>
+      <div class="strategy-section">
+        <div class="toggle-row">
+          <div class="toggle-label">Dark / Light mode</div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+            <span class="toggle-slider"></span>
+          </label>
+          <span style="font-family:var(--font-mono);font-size:12px;color:var(--muted)">Toggle light mode</span>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title" style="margin-bottom:1rem">Data backup</div>
+      <div class="strategy-section">
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:1rem;line-height:1.7">
+          Export all your data (strategy, principles, investments, journal, 100 trades) as a JSON file.<br>
+          Import to restore on any device or browser.
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="exportData()">⬇ Export data</button>
+          <label class="btn btn-secondary" style="cursor:pointer">
+            ⬆ Import data
+            <input type="file" accept=".json" style="display:none" onchange="importData(event)">
+          </label>
+        </div>
+      </div>
+    </div>`;
+  settingsPage.appendChild(extras);
+  initTheme();
+}
+
+// ══════════════════════════════════════════════════════
+// ── CALENDAR & TO-DO ──
+// ══════════════════════════════════════════════════════
+let calViewYear, calViewMonth; // 0-indexed month
+let calSelectedDate = null;     // 'YYYY-MM-DD' currently open in panel
+let eventTimeMode = 'allday';
+let todoItems = [];             // [{text, checked}]
+let calendarEvents = {};        // { 'YYYY-MM-DD': [{text, mode, time, start, end}] }
+
+function pad2(n) { return String(n).padStart(2,'0'); }
+function dateKey(y,m,d) { return `${y}-${pad2(m+1)}-${pad2(d)}`; }
+
+function loadCalendarData() {
+  try { calendarEvents = JSON.parse(localStorage.getItem('forex_calendar_events') || '{}'); } catch(e) { calendarEvents = {}; }
+  try { todoItems = JSON.parse(localStorage.getItem('forex_todo') || '[]'); } catch(e) { todoItems = []; }
+}
+function saveCalendarEvents() { localStorage.setItem('forex_calendar_events', JSON.stringify(calendarEvents)); }
+function saveTodoItems()      { localStorage.setItem('forex_todo', JSON.stringify(todoItems)); }
+
+function initCalendar() {
+  const now = new Date();
+  calViewYear  = now.getFullYear();
+  calViewMonth = now.getMonth();
+}
+
+function calPrevMonth() {
+  calViewMonth--;
+  if(calViewMonth < 0) { calViewMonth = 11; calViewYear--; }
+  renderCalendar();
+}
+function calNextMonth() {
+  calViewMonth++;
+  if(calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
+  renderCalendar();
+}
+function calToday() {
+  const now = new Date();
+  calViewYear = now.getFullYear();
+  calViewMonth = now.getMonth();
+  renderCalendar();
+}
+
+// Build a map of high-impact news events keyed by date, using
+// the actual dates from MACRO_EVENTS (date field) for the current loaded week
+function getNewsEventsByDate() {
+  const map = {};
+  const weekDates = getWeekDates(); // SAT..FRI dates for the current trading week
+  (MACRO_EVENTS || []).forEach(e => {
+    if(e.impact !== 'high') return;
+    const d = weekDates[e.day]; // e.day is MON/TUE/WED/THU etc — same mapping as Macro Events tab
+    if(!d) return;
+    const key = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
+    if(!map[key]) map[key] = [];
+    map[key].push(e);
+  });
+  return map;
+}
+
+// Returns all events (personal, including recurring) that apply to a given date key
+function getEventsForDate(key) {
+  const results = [];
+  const [ty, tm, td] = key.split('-').map(Number);
+  const targetDate = new Date(ty, tm-1, td);
+
+  Object.entries(calendarEvents).forEach(([origKey, events]) => {
+    const [oy, om, od] = origKey.split('-').map(Number);
+    const origDate = new Date(oy, om-1, od);
+
+    events.forEach((e, idx) => {
+      const repeat = e.repeat || 'none';
+
+      if(origKey === key) {
+        results.push({ ...e, origKey, idx, isOrigin: true });
+        return;
+      }
+
+      if(repeat === 'none') return;
+      if(targetDate <= origDate) return; // only future recurrences
+
+      if(repeat === 'daily') {
+        results.push({ ...e, origKey, idx, isOrigin: false });
+      } else if(repeat === 'weekly') {
+        if(targetDate.getDay() === origDate.getDay()) {
+          results.push({ ...e, origKey, idx, isOrigin: false });
+        }
+      } else if(repeat === 'yearly') {
+        if(targetDate.getMonth() === origDate.getMonth() && targetDate.getDate() === origDate.getDate()) {
+          results.push({ ...e, origKey, idx, isOrigin: false });
+        }
+      }
+    });
+  });
+
+  return results;
+}
+
+function renderCalendar() {
+  const grid  = document.getElementById('calGrid');
+  const label = document.getElementById('calMonthLabel');
+  if(!grid || !label) return;
+
+  const MONTH_NAMES_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  label.textContent = `${MONTH_NAMES_FULL[calViewMonth]} ${calViewYear}`;
+
+  grid.innerHTML = '';
+  ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-daylabel';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const firstDay = new Date(calViewYear, calViewMonth, 1);
+  // Convert JS getDay (0=Sun) to Mon-first index (0=Mon..6=Sun)
+  let startOffset = firstDay.getDay() - 1;
+  if(startOffset < 0) startOffset = 6;
+
+  const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+  const newsMap = getNewsEventsByDate();
+
+  const today = new Date();
+  const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+
+  for(let i = 0; i < startOffset; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-cell empty';
+    grid.appendChild(el);
+  }
+
+  for(let day = 1; day <= daysInMonth; day++) {
+    const key = dateKey(calViewYear, calViewMonth, day);
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell' + (key === todayKey ? ' today' : '');
+    cell.onclick = () => openEventPanel(key);
+
+    const num = document.createElement('div');
+    num.className = 'cal-daynum';
+    num.textContent = day;
+    cell.appendChild(num);
+
+    const news = newsMap[key] || [];
+    const personal = getEventsForDate(key);
+
+    let shown = 0;
+    personal.slice(0,2).forEach(e => {
+      const dot = document.createElement('div');
+      dot.className = 'cal-event-dot personal';
+      dot.textContent = e.text;
+      cell.appendChild(dot);
+      shown++;
+    });
+    news.slice(0, Math.max(0, 2-shown)).forEach(e => {
+      const dot = document.createElement('div');
+      dot.className = 'cal-event-dot news';
+      dot.textContent = e.name;
+      cell.appendChild(dot);
+      shown++;
+    });
+
+    const total = news.length + personal.length;
+    if(total > shown) {
+      const more = document.createElement('div');
+      more.className = 'cal-more';
+      more.textContent = `+${total - shown} more`;
+      cell.appendChild(more);
+    }
+
+    grid.appendChild(cell);
+  }
+}
+
+// ── EVENT PANEL ──
+function openEventPanel(key) {
+  calSelectedDate = key;
+  const overlay = document.getElementById('eventPanelOverlay');
+  const d = new Date(key + 'T00:00:00');
+  document.getElementById('eventPanelDate').textContent = d.toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'long', year:'numeric'});
+
+  document.getElementById('eventDesc').value = '';
+  setEventTimeMode('allday');
+  document.getElementById('eventTimeSingle').value = '';
+  document.getElementById('eventTimeStart').value = '';
+  document.getElementById('eventTimeEnd').value = '';
+  document.getElementById('eventRepeat').value = 'none';
+
+  renderExistingEvents(key);
+  overlay.classList.add('open');
+}
+
+function closeEventPanel() {
+  document.getElementById('eventPanelOverlay').classList.remove('open');
+  calSelectedDate = null;
+}
+
+function renderExistingEvents(key) {
+  const container = document.getElementById('eventListExisting');
+  container.innerHTML = '';
+
+  const newsMap = getNewsEventsByDate();
+  const news = newsMap[key] || [];
+  const personal = getEventsForDate(key);
+
+  if(news.length === 0 && personal.length === 0) {
+    container.innerHTML = '<div class="todo-empty">No events for this day yet.</div>';
+    return;
+  }
+
+  const REPEAT_LABELS = { daily:'Repeats daily', weekly:'Repeats weekly', yearly:'Repeats yearly' };
+
+  personal.forEach(e => {
+    let timeStr = 'All day';
+    if(e.mode === 'single' && e.time) timeStr = e.time;
+    else if(e.mode === 'range' && (e.start || e.end)) timeStr = `${e.start||'?'} – ${e.end||'?'}`;
+    if(e.repeat && e.repeat !== 'none') timeStr += ` · ${REPEAT_LABELS[e.repeat]}`;
+
+    const el = document.createElement('div');
+    el.className = 'existing-event personal';
+    el.innerHTML = `
+      <div><div class="existing-event-text">${escapeHtml(e.text)}</div><div class="existing-event-time">${timeStr}</div></div>
+      <button class="existing-event-del" onclick="deleteEvent('${e.origKey}', ${e.idx})" title="${e.isOrigin ? 'Delete' : 'Delete entire series'}">✕</button>`;
+    container.appendChild(el);
+  });
+
+  news.forEach(e => {
+    const el = document.createElement('div');
+    el.className = 'existing-event news';
+    el.innerHTML = `<div><div class="existing-event-text">🔴 ${e.name}</div><div class="existing-event-time">${e.time || 'High-impact news'}</div></div>`;
+    container.appendChild(el);
+  });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function setEventTimeMode(mode) {
+  eventTimeMode = mode;
+  document.getElementById('modeAllDay').classList.toggle('active', mode==='allday');
+  document.getElementById('modeSingle').classList.toggle('active', mode==='single');
+  document.getElementById('modeRange').classList.toggle('active', mode==='range');
+  document.getElementById('singleTimeField').style.display = mode==='single' ? 'block' : 'none';
+  document.getElementById('rangeTimeFields').style.display = mode==='range' ? 'block' : 'none';
+}
+
+function saveEvent() {
+  const text = document.getElementById('eventDesc').value.trim();
+  if(!text) { alert('Please enter an event description.'); return; }
+  if(!calSelectedDate) return;
+
+  const repeat = document.getElementById('eventRepeat').value;
+  const event = { text, mode: eventTimeMode, repeat };
+  if(eventTimeMode === 'single') {
+    event.time = document.getElementById('eventTimeSingle').value;
+  } else if(eventTimeMode === 'range') {
+    event.start = document.getElementById('eventTimeStart').value;
+    event.end   = document.getElementById('eventTimeEnd').value;
+  }
+
+  if(!calendarEvents[calSelectedDate]) calendarEvents[calSelectedDate] = [];
+  calendarEvents[calSelectedDate].push(event);
+  saveCalendarEvents();
+
+  document.getElementById('eventDesc').value = '';
+  document.getElementById('eventTimeSingle').value = '';
+  document.getElementById('eventTimeStart').value = '';
+  document.getElementById('eventTimeEnd').value = '';
+  document.getElementById('eventRepeat').value = 'none';
+  setEventTimeMode('allday');
+
+  renderExistingEvents(calSelectedDate);
+  renderCalendar();
+}
+
+function deleteEvent(key, idx) {
+  if(!calendarEvents[key]) return;
+  calendarEvents[key].splice(idx, 1);
+  if(calendarEvents[key].length === 0) delete calendarEvents[key];
+  saveCalendarEvents();
+  renderExistingEvents(key);
+  renderCalendar();
+}
+
+// ── TO-DO LIST ──
+function renderTodo() {
+  const list = document.getElementById('todoList');
+  if(!list) return;
+  if(todoItems.length === 0) {
+    list.innerHTML = '<div class="todo-empty">No tasks yet — type below and press Enter.</div>';
+    return;
+  }
+  list.innerHTML = todoItems.map((item, i) => `
+    <div class="todo-item ${item.checked ? 'checked' : ''}">
+      <div class="todo-check" onclick="toggleTodo(${i})">${item.checked ? '✓' : ''}</div>
+      <div class="todo-text" onclick="toggleTodo(${i})">${escapeHtml(item.text)}</div>
+      <button class="todo-del" onclick="deleteTodo(${i})">✕</button>
+    </div>`).join('');
+}
+
+function addTodo() {
+  const input = document.getElementById('todoInput');
+  const val = input.value.trim();
+  if(!val) return;
+  todoItems.push({ text: val, checked: false });
+  saveTodoItems();
+  renderTodo();
+  input.value = '';
+}
+
+function toggleTodo(i) {
+  todoItems[i].checked = !todoItems[i].checked;
+  saveTodoItems();
+  renderTodo();
+}
+
+function deleteTodo(i) {
+  todoItems.splice(i, 1);
+  saveTodoItems();
+  renderTodo();
+}
+
+
 window.onload = function() {
+  hideSplash();
   init();
   loadStrategy();
   loadPrinciples();
   loadInvestments();
   loadJournal();
   loadHundred();
+  loadChecklist();
+  loadRiskCalc();
+  loadCalendarData();
+  initCalendar();
+  buildSettingsExtras();
 };</script>
 </body>
 </html>
