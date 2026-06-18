@@ -821,15 +821,15 @@
     <div class="risk-grid">
       <div class="risk-field">
         <div class="risk-label">Account balance (ZAR)</div>
-        <input class="risk-input" id="riskBalance" type="number" placeholder="e.g. 10000" oninput="calcRisk()"/>
+        <input class="risk-input" id="riskBalance" type="number" placeholder="e.g. 10000" oninput="saveRiskValues()"/>
       </div>
       <div class="risk-field">
         <div class="risk-label">Risk %</div>
-        <input class="risk-input" id="riskPct" type="number" placeholder="e.g. 2" step="0.1" min="0.1" max="10" oninput="calcRisk()"/>
+        <input class="risk-input" id="riskPct" type="number" placeholder="e.g. 2" step="0.1" min="0.1" max="10" oninput="saveRiskValues()"/>
       </div>
       <div class="risk-field">
         <div class="risk-label">Currency pair</div>
-        <select class="risk-select" id="riskPair" onchange="calcRisk()">
+        <select class="risk-select" id="riskPair" onchange="saveRiskValues()">
           <option value="">Select pair...</option>
           <option>NZD/USD</option><option>USD/CAD</option><option>USD/JPY</option>
           <option>CAD/JPY</option><option>GBP/CAD</option><option>EUR/JPY</option>
@@ -842,7 +842,7 @@
       </div>
       <div class="risk-field">
         <div class="risk-label">Stop loss (pips)</div>
-        <input class="risk-input" id="riskSL" type="number" placeholder="e.g. 20" oninput="calcRisk()"/>
+        <input class="risk-input" id="riskSL" type="number" placeholder="e.g. 20" oninput="saveRiskValues()"/>
       </div>
     </div>
 
@@ -973,16 +973,43 @@ const CURRENCY_PAIRS_MAP = {
 };
 
 // Impact keywords to detect high/medium impact from FF titles
+// ── TIER-1 HIGH IMPACT KEYWORDS ──
+// Used as fallback when the feed does not provide an explicit impact field.
+// Covers all major events including FOMC, rate decisions, CPI, NFP, GDP etc.
 const HIGH_IMPACT_KEYWORDS = [
-  'rate decision','interest rate','cpi','inflation','gdp','nfp','non-farm',
-  'employment change','unemployment','monetary policy','press conference',
-  'fomc','boe','ecb','rba','boc','rbnz','snb','boj','fed chair',
-  'retail sales','jobs','labor','payroll'
+  // Fed / FOMC — explicit variants to ensure none are missed
+  'fomc','federal open market committee','federal funds rate','fed rate',
+  'fomc minutes','fomc meeting','fed statement','fed decision',
+  'powell','fed chair','federal reserve',
+  // Interest rates — all central banks
+  'interest rate','rate decision','rate statement','rate hike','rate cut',
+  'monetary policy statement','monetary policy decision','monetary policy report',
+  'boe rate','ecb rate','rba rate','boc rate','rbnz rate','snb rate','boj rate',
+  'bank of england','european central bank','reserve bank of australia',
+  'bank of canada','bank of japan','reserve bank of new zealand',
+  'swiss national bank',
+  // Inflation
+  'cpi','consumer price index','core cpi','core inflation',
+  'pce','core pce','personal consumption expenditure','inflation rate',
+  // Employment
+  'nfp','non-farm','nonfarm payroll','payroll','employment change',
+  'unemployment rate','claimant count','labor market',
+  'jobs report','employment report','adp employment',
+  // Growth
+  'gdp','gross domestic product','economic growth',
+  // Trade & Retail
+  'retail sales','trade balance',
+  // Speeches & Minutes that move markets
+  'central bank minutes','fomc minutes','ecb minutes','boe minutes',
+  'press conference',
 ];
+
+// Medium impact still used for Macro Events page
 const MED_IMPACT_KEYWORDS = [
-  'pmi','ism','zew','ppi','trade balance','current account','consumer',
-  'sentiment','minutes','confidence','industrial','manufacturing',
-  'housing','durable','jobless claims','claimant'
+  'pmi','ism','zew','ppi','producer price','current account',
+  'consumer confidence','consumer sentiment','industrial production',
+  'manufacturing','housing','durable goods','jobless claims',
+  'building permits','business confidence',
 ];
 
 // Day labels used in display
@@ -1025,7 +1052,7 @@ function parseImpact(title) {
   const t = title.toLowerCase();
   if(HIGH_IMPACT_KEYWORDS.some(k => t.includes(k))) return 'high';
   if(MED_IMPACT_KEYWORDS.some(k => t.includes(k))) return 'med';
-  return null; // skip low impact
+  return null;
 }
 
 function parseCurrency(title) {
@@ -1054,14 +1081,12 @@ function parseFForexFactoryRSS(xmlText) {
   const parser = new DOMParser();
   const xml = parser.parseFromString(xmlText, 'text/xml');
 
-  // faireconomy.media uses <event> tags; FF RSS uses <item> tags
   let items = Array.from(xml.querySelectorAll('event'));
   if(items.length === 0) items = Array.from(xml.querySelectorAll('item'));
 
-  const events = [];
+  const rawEvents = [];
 
   items.forEach(item => {
-    // faireconomy format fields
     const title    = (item.querySelector('title')?.textContent || '').trim();
     const country  = (item.querySelector('country')?.textContent || '').trim().toUpperCase();
     const date     = (item.querySelector('date')?.textContent || item.querySelector('pubDate')?.textContent || '').trim();
@@ -1070,17 +1095,18 @@ function parseFForexFactoryRSS(xmlText) {
     const forecast = (item.querySelector('forecast')?.textContent || '').trim();
     const previous = (item.querySelector('previous')?.textContent || '').trim();
 
-    // Map faireconomy impact levels
+    // Trust the feed's own High flag first — most reliable signal
+    // Fall back to keyword matching to catch FOMC and others that may be mislabelled
     let impactLevel;
-    if(impact === 'high' || impact === '3') impactLevel = 'high';
-    else if(impact === 'medium' || impact === 'moderate' || impact === '2') impactLevel = 'med';
-    else {
-      // Fallback: detect from title keywords
+    if(impact === 'high' || impact === '3') {
+      impactLevel = 'high';
+    } else if(impact === 'medium' || impact === 'moderate' || impact === '2') {
+      impactLevel = parseImpact(title) === 'high' ? 'high' : 'med';
+    } else {
       impactLevel = parseImpact(title);
     }
-    if(!impactLevel) return; // skip low impact
+    if(!impactLevel) return;
 
-    // Map country to currency
     const COUNTRY_CURRENCY = {
       'US':'USD','USD':'USD','UNITED STATES':'USD',
       'GB':'GBP','UK':'GBP','GBP':'GBP','UNITED KINGDOM':'GBP',
@@ -1096,12 +1122,10 @@ function parseFForexFactoryRSS(xmlText) {
 
     const pairs = CURRENCY_PAIRS_MAP[currency];
 
-    // Parse day of week from date field
     const d = new Date(date);
     const day = isNaN(d) ? parseDayFromDate(date) : ['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()];
     if(!day || day==='SAT'||day==='SUN'||day==='FRI') return;
 
-    // Format time
     let displayTime = 'Tentative';
     if(time && time !== '00:00' && time !== '') {
       displayTime = time.includes('GMT') ? time : `${time} GMT`;
@@ -1109,24 +1133,42 @@ function parseFForexFactoryRSS(xmlText) {
       displayTime = parseTimeFromDate(date);
     }
 
-    // Build description
     let desc = `${currency} event`;
     if(forecast) desc += ` · Forecast: ${forecast}`;
     if(previous) desc += ` · Previous: ${previous}`;
     desc += '. Check forexfactory.com for full analysis.';
 
-    // Store actual date (YYYY-MM-DD) for calendar matching
     let dateStr = null;
     if(!isNaN(d)) {
       dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
 
-    events.push({ day, time: displayTime, name: title, impact: impactLevel, currency, desc, pairs, date: dateStr });
+    rawEvents.push({ day, time: displayTime, name: title, impact: impactLevel, currency, desc, pairs, date: dateStr });
   });
 
-  // Sort by day order
+  // ── Deduplicate: same currency + same day + same time → merge into one event ──
+  // Keep the most descriptive (longest) name, combine pair lists
+  const dedupMap = {};
+  rawEvents.forEach(e => {
+    const key = `${e.currency}|${e.day}|${e.time}|${e.impact}`;
+    if(!dedupMap[key]) {
+      dedupMap[key] = { ...e, pairs: [...e.pairs] };
+    } else {
+      // Keep the longer name as it's usually more descriptive
+      if(e.name.length > dedupMap[key].name.length) dedupMap[key].name = e.name;
+      // Merge pairs without duplicates
+      e.pairs.forEach(p => { if(!dedupMap[key].pairs.includes(p)) dedupMap[key].pairs.push(p); });
+    }
+  });
+
+  const events = Object.values(dedupMap);
+
+  // Sort by day then time
   const dayOrder = {MON:0,TUE:1,WED:2,THU:3};
-  events.sort((a,b) => (dayOrder[a.day]||0) - (dayOrder[b.day]||0));
+  events.sort((a,b) => {
+    const dd = (dayOrder[a.day]||0) - (dayOrder[b.day]||0);
+    return dd !== 0 ? dd : (a.time||'').localeCompare(b.time||'');
+  });
 
   return events;
 }
@@ -2803,7 +2845,7 @@ function loadRiskCalc() {
     if(d.pair)    document.getElementById('riskPair').value    = d.pair;
     if(d.sl)      document.getElementById('riskSL').value      = d.sl;
     // Recalculate with restored values if all fields are present
-    if(d.balance && d.pct && d.pair && d.sl) calcRisk();
+    // Values restored — press Calculate to see results
   } catch(e) {}
 }
 
@@ -2989,11 +3031,13 @@ function calToday() {
 // Build a map of high-impact news events keyed by date, using
 // the actual dates from MACRO_EVENTS (date field) for the current loaded week
 function getNewsEventsByDate() {
+  // Calendar only shows USD high impact events
   const map = {};
-  const weekDates = getWeekDates(); // SAT..FRI dates for the current trading week
+  const weekDates = getWeekDates();
   (MACRO_EVENTS || []).forEach(e => {
     if(e.impact !== 'high') return;
-    const d = weekDates[e.day]; // e.day is MON/TUE/WED/THU etc — same mapping as Macro Events tab
+    if(e.currency !== 'USD') return; // Only USD events in calendar
+    const d = weekDates[e.day];
     if(!d) return;
     const key = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
     if(!map[key]) map[key] = [];
