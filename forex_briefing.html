@@ -1311,7 +1311,9 @@ function renderMacroEvents() {
     if(evs.length === 0) return;
     const group = document.createElement('div');
     group.className = 'day-group';
-    group.innerHTML = `<div class="day-label"><div class="day-name">${DAY_NAMES[day]}</div><div class="day-line"></div><div class="day-count">${evs.length} event${evs.length>1?'s':''}</div></div>`;
+    const dayDate = getWeekDates()[day];
+    const dateStr = dayDate ? dayDate.toLocaleDateString('en-GB',{day:'numeric',month:'long'}) : '';
+    group.innerHTML = `<div class="day-label"><div class="day-name">${DAY_NAMES[day]}${dateStr ? ' · ' + dateStr : ''}</div><div class="day-line"></div><div class="day-count">${evs.length} event${evs.length>1?'s':''}</div></div>`;
     evs.forEach(e => {
       const affectedPairs = (e.pairs || []).filter(p => YOUR_PAIRS.includes(p));
       const card = document.createElement('div');
@@ -2910,6 +2912,30 @@ function init() {
     renderMacroEvents();
     fetchMacroEvents();
   }
+
+  // Auto-refresh once the trading week rolls over (Friday 23:59:59 → new week)
+  // Re-checks every minute so the app updates itself even if left open across the boundary
+  scheduleWeekRollover();
+}
+
+let weekRolloverTimer = null;
+function scheduleWeekRollover() {
+  if(weekRolloverTimer) clearInterval(weekRolloverTimer);
+  weekRolloverTimer = setInterval(() => {
+    const currentKey = getMacroWeekKey();
+    if(currentKey !== weekRolloverTimer.lastKey) {
+      // First run — just record the key
+      weekRolloverTimer.lastKey = weekRolloverTimer.lastKey || currentKey;
+    }
+    if(currentKey !== weekRolloverTimer.lastKey) {
+      // Week has rolled over — refresh everything tied to the trading week
+      weekRolloverTimer.lastKey = currentKey;
+      clearOldMacroCaches();
+      clearOldScoreCaches();
+      init();
+    }
+  }, 60000); // check every minute
+  weekRolloverTimer.lastKey = getMacroWeekKey();
 }
 
 window.onload = function() {
