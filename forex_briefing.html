@@ -437,6 +437,41 @@
   .todo-input { width: 100%; background: var(--bg); border: 0.5px solid var(--border2); border-radius: 8px; padding: 10px 14px; font-family: var(--font-head); font-size: 14px; color: var(--text); outline: none; margin-top: 0.5rem; }
   .todo-input:focus { border-color: var(--accent); }
   .todo-empty { font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding: 0.5rem 0; }
+
+  /* ── SCORING SYSTEM ── */
+  .score-pair-chip { font-family: var(--font-mono); font-size: 12px; padding: 7px 13px; border-radius: 6px; border: 0.5px solid var(--border2); background: var(--surface); color: var(--muted); cursor: pointer; user-select: none; transition: all 0.15s; }
+  .score-pair-chip:hover { border-color: var(--accent); color: var(--text); }
+  .score-pair-chip.scoring { border-color: var(--bull); background: rgba(0,208,132,0.1); color: var(--bull); }
+  .score-pair-chip.not-trading { border-color: var(--bear); background: rgba(255,77,109,0.1); color: var(--bear); }
+
+  .score-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 14px; }
+  .score-card.priority { border-left: 4px solid var(--bull); }
+  .score-card.watch { border-left: 4px solid var(--accent); }
+  .score-card.skip { border-left: 4px solid var(--muted); opacity: 0.75; }
+  .score-card.not-trading-card { border-left: 4px solid var(--bear); opacity: 0.6; }
+
+  .score-card-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; flex-wrap: wrap; gap: 8px; }
+  .score-pair-name { font-size: 20px; font-weight: 800; }
+  .score-total-badge { font-family: var(--font-mono); font-size: 22px; font-weight: 800; }
+  .score-verdict { font-family: var(--font-mono); font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 99px; }
+  .score-verdict.priority { background: rgba(0,208,132,0.15); color: var(--bull); }
+  .score-verdict.watch { background: rgba(79,142,247,0.15); color: var(--accent); }
+  .score-verdict.skip { background: rgba(107,114,128,0.15); color: var(--muted); }
+  .score-verdict.not-trading { background: rgba(255,77,109,0.15); color: var(--bear); }
+
+  .score-card-body { padding: 0 1.25rem 1.25rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  @media(max-width:700px){ .score-card-body { grid-template-columns: 1fr 1fr; } }
+  @media(max-width:460px){ .score-card-body { grid-template-columns: 1fr; } }
+
+  .score-field { background: var(--surface2); border-radius: 8px; padding: 10px 12px; }
+  .score-field-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  .score-select { width: 100%; background: var(--bg); border: 0.5px solid var(--border2); border-radius: 6px; padding: 7px 10px; font-family: var(--font-mono); font-size: 12px; color: var(--text); outline: none; cursor: pointer; }
+  .score-select:focus { border-color: var(--accent); }
+  .score-direction-select { width: 100%; background: var(--bg); border: 0.5px solid var(--border2); border-radius: 6px; padding: 7px 10px; font-family: var(--font-mono); font-size: 12px; color: var(--text); outline: none; cursor: pointer; margin-top: 6px; }
+  .score-macro-events { font-family: var(--font-mono); font-size: 10px; color: var(--warn); margin-top: 6px; line-height: 1.5; }
+
+  .score-progress-bar-wrap { background: var(--bg); border-radius: 99px; height: 4px; margin-top: 10px; overflow: hidden; }
+  .score-progress-bar { height: 4px; border-radius: 99px; transition: width 0.4s, background 0.4s; }
 </style>
 </head>
 
@@ -500,68 +535,61 @@
 <!-- ANALYSIS PAGE -->
 <div class="page" id="page-analysis">
   <div class="page-title">Technical Analysis</div>
-  <div class="page-sub">Top-down analysis · W / D / 4H trend · AOI detection · 30 / 50 EMA · Continuation / Reversal Pattern</div>
+  <div class="page-sub">Score each pair based on your manual TradingView analysis · Pairs ranked by total score</div>
 
   <div class="method-note">
-    <span>Important note:</span> Always perform independent analysis and check results against Tradingview charts. Cannot blame the software. <span>You are accountable!</span>
+    <span>How to use:</span> First select which pairs you want to score and which you are not trading this week. Then fill in the scoring card for each selected pair based on your TradingView analysis. Pairs are ranked highest to lowest automatically.
   </div>
 
-  <div class="section">
-    <div class="section-header">
-      <div class="section-title">Select pairs to analyse</div>
-      <div style="display:flex;gap:6px">
-        <button class="btn-sm" onclick="selectAll()">Select all</button>
-        <button class="btn-sm" onclick="selectNone()">Clear all</button>
+  <!-- PHASE 1: PAIR SELECTION -->
+  <div id="scoringPhase1">
+    <div class="section-header" style="margin-bottom:1rem">
+      <div class="section-title">Step 1 — Select your pairs</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn-sm" onclick="scoreMarkAll('scoring')">All → Scoring</button>
+        <button class="btn-sm" onclick="scoreMarkAll('not-trading')">All → Not Trading</button>
+        <button class="btn-sm" onclick="scoreClearAll()">Reset all</button>
       </div>
     </div>
-    <div class="pairs-grid" id="pairsGrid"></div>
-    <div style="margin-top:10px;font-family:var(--font-mono);font-size:11px;color:var(--muted)" id="pairCount"></div>
+    <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:1rem">
+      Click a pair once to mark it for scoring (green), twice to mark as not trading (red), third click to reset.
+    </div>
+    <div class="pairs-grid" id="scoringPairsGrid"></div>
+    <div style="display:flex;gap:16px;margin-top:10px;font-family:var(--font-mono);font-size:11px;flex-wrap:wrap">
+      <span style="color:var(--bull)" id="scoringCountLabel">0 pairs to score</span>
+      <span style="color:var(--bear)" id="notTradingCountLabel">0 pairs not trading</span>
+    </div>
+    <div style="margin-top:1.25rem;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn-scan-all" onclick="startScoring()">▶ Start Scoring</button>
+      <button class="btn-clear-results" onclick="clearScores()">✕ Clear all scores</button>
+    </div>
   </div>
 
-  <div class="scan-controls">
-    <div class="scan-controls-title">Scan options</div>
-    <div class="scan-buttons">
-      <button class="btn-scan-all" id="btnScanAll" onclick="startScan('all')" disabled>⚡ Scan All 22 Pairs</button>
-      <button class="btn-scan-selected" id="btnScanSelected" onclick="startScan('selected')" disabled>▶ Scan Selected</button>
-      <button class="btn-clear-results" onclick="clearResults()">✕ Clear results</button>
-    </div>
-    <div class="rate-note">API rate: <span>8 credits/min · 3 credits per pair </span>· All 22 pairs ≈ 10 min</div>
-    <div class="scan-progress" id="scanProgress">
-      <div class="progress-header">
-        <div class="progress-text" id="progressText">Starting scan...</div>
-        <div class="progress-count" id="progressCount">0 / 0</div>
+  <!-- PHASE 2: SCORING CARDS -->
+  <div id="scoringPhase2" style="display:none">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:8px">
+      <div>
+        <div class="section-title"><span class="dot-live"></span>Weekly scoring — <span id="scoringWeekLabel"></span></div>
       </div>
-      <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
-      <div class="progress-eta" id="progressEta"></div>
-    </div>
-  </div>
-
-  <div id="cacheBanner" style="display:none" class="cache-banner">
-    <div class="cache-banner-left">✓ Results loaded from this week's analysis <span id="cacheTime"></span></div>
-    <div class="cache-expiry" id="cacheExpiry"></div>
-  </div>
-
-  <div id="summarySection" style="display:none">
-    <div class="summary-bar">
-      <div class="summary-card"><div class="summary-label">Pairs scanned</div><div class="summary-val blue" id="sumScanned">0</div></div>
-      <div class="summary-card"><div class="summary-label">Bullish</div><div class="summary-val green" id="sumBull">0</div></div>
-      <div class="summary-card"><div class="summary-label">Bearish</div><div class="summary-val red" id="sumBear">0</div></div>
-      <div class="summary-card"><div class="summary-label">Top picks (GO)</div><div class="summary-val blue" id="sumTop">0</div></div>
-    </div>
-  </div>
-
-  <div id="resultsSection" style="display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px;">
-      <div class="section-title"><span class="dot-live"></span>This week's analysis</div>
-      <div class="filter-row">
-        <button class="filter-btn active" id="fb-all" onclick="setFilter('all')">All</button>
-        <button class="filter-btn" id="fb-go" onclick="setFilter('go')">GO only</button>
-        <button class="filter-btn" id="fb-watch" onclick="setFilter('watch')">WATCH</button>
-        <button class="filter-btn" id="fb-bull" onclick="setFilter('bull')">Bullish</button>
-        <button class="filter-btn" id="fb-bear" onclick="setFilter('bear')">Bearish</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="filter-btn active" id="sf-all" onclick="setScoringFilter('all')">All</button>
+        <button class="filter-btn" id="sf-priority" onclick="setScoringFilter('priority')">Priority</button>
+        <button class="filter-btn" id="sf-watch" onclick="setScoringFilter('watch')">Watch</button>
+        <button class="filter-btn" id="sf-skip" onclick="setScoringFilter('skip')">Skip</button>
+        <button class="btn-sm" onclick="backToSelection()">← Back</button>
       </div>
     </div>
-    <div class="results" id="resultsContainer"></div>
+
+    <!-- Summary bar -->
+    <div class="summary-bar" style="margin-bottom:1.5rem">
+      <div class="summary-card"><div class="summary-label">Pairs scored</div><div class="summary-val blue" id="sc-total">0</div></div>
+      <div class="summary-card"><div class="summary-label">Priority (8-10)</div><div class="summary-val green" id="sc-priority">0</div></div>
+      <div class="summary-card"><div class="summary-label">Watch (5-7)</div><div class="summary-val blue" id="sc-watch">0</div></div>
+      <div class="summary-card"><div class="summary-label">Skip (0-4)</div><div class="summary-val red" id="sc-skip">0</div></div>
+    </div>
+
+    <div id="scoringCardsContainer"></div>
   </div>
 </div>
 
@@ -821,15 +849,15 @@
     <div class="risk-grid">
       <div class="risk-field">
         <div class="risk-label">Account balance (ZAR)</div>
-        <input class="risk-input" id="riskBalance" type="number" placeholder="e.g. 10000" oninput="saveRiskValues()"/>
+        <input class="risk-input" id="riskBalance" type="number" placeholder="e.g. 10000" oninput="calcRisk()"/>
       </div>
       <div class="risk-field">
         <div class="risk-label">Risk %</div>
-        <input class="risk-input" id="riskPct" type="number" placeholder="e.g. 2" step="0.1" min="0.1" max="10" oninput="saveRiskValues()"/>
+        <input class="risk-input" id="riskPct" type="number" placeholder="e.g. 2" step="0.1" min="0.1" max="10" oninput="calcRisk()"/>
       </div>
       <div class="risk-field">
         <div class="risk-label">Currency pair</div>
-        <select class="risk-select" id="riskPair" onchange="saveRiskValues()">
+        <select class="risk-select" id="riskPair" onchange="calcRisk()">
           <option value="">Select pair...</option>
           <option>NZD/USD</option><option>USD/CAD</option><option>USD/JPY</option>
           <option>CAD/JPY</option><option>GBP/CAD</option><option>EUR/JPY</option>
@@ -842,7 +870,7 @@
       </div>
       <div class="risk-field">
         <div class="risk-label">Stop loss (pips)</div>
-        <input class="risk-input" id="riskSL" type="number" placeholder="e.g. 20" oninput="saveRiskValues()"/>
+        <input class="risk-input" id="riskSL" type="number" placeholder="e.g. 20" oninput="calcRisk()"/>
       </div>
     </div>
 
@@ -973,47 +1001,52 @@ const CURRENCY_PAIRS_MAP = {
 };
 
 // Impact keywords to detect high/medium impact from FF titles
-// ── TIER-1 HIGH IMPACT KEYWORDS ──
-// Used as fallback when the feed does not provide an explicit impact field.
-// Covers all major events including FOMC, rate decisions, CPI, NFP, GDP etc.
 const HIGH_IMPACT_KEYWORDS = [
-  // Fed / FOMC — explicit variants to ensure none are missed
-  'fomc','federal open market committee','federal funds rate','fed rate',
-  'fomc minutes','fomc meeting','fed statement','fed decision',
-  'powell','fed chair','federal reserve',
-  // Interest rates — all central banks
-  'interest rate','rate decision','rate statement','rate hike','rate cut',
-  'monetary policy statement','monetary policy decision','monetary policy report',
-  'boe rate','ecb rate','rba rate','boc rate','rbnz rate','snb rate','boj rate',
-  'bank of england','european central bank','reserve bank of australia',
-  'bank of canada','bank of japan','reserve bank of new zealand',
-  'swiss national bank',
-  // Inflation
-  'cpi','consumer price index','core cpi','core inflation',
-  'pce','core pce','personal consumption expenditure','inflation rate',
-  // Employment
-  'nfp','non-farm','nonfarm payroll','payroll','employment change',
-  'unemployment rate','claimant count','labor market',
-  'jobs report','employment report','adp employment',
-  // Growth
-  'gdp','gross domestic product','economic growth',
-  // Trade & Retail
-  'retail sales','trade balance',
-  // Speeches & Minutes that move markets
-  'central bank minutes','fomc minutes','ecb minutes','boe minutes',
-  'press conference',
+  'rate decision','interest rate','cpi','inflation','gdp','nfp','non-farm',
+  'employment change','unemployment','monetary policy','press conference',
+  'fomc','boe','ecb','rba','boc','rbnz','snb','boj','fed chair',
+  'retail sales','jobs','labor','payroll'
 ];
-
-// Medium impact still used for Macro Events page
 const MED_IMPACT_KEYWORDS = [
-  'pmi','ism','zew','ppi','producer price','current account',
-  'consumer confidence','consumer sentiment','industrial production',
-  'manufacturing','housing','durable goods','jobless claims',
-  'building permits','business confidence',
+  'pmi','ism','zew','ppi','trade balance','current account','consumer',
+  'sentiment','minutes','confidence','industrial','manufacturing',
+  'housing','durable','jobless claims','claimant'
 ];
 
 // Day labels used in display
 const DAY_NAMES = { MON:'Monday', TUE:'Tuesday', WED:'Wednesday', THU:'Thursday', FRI:'Friday' };
+
+// ── WEEK DATE HELPERS ──
+// Trading week runs Saturday 00:00 → Friday 23:59.
+// Returns the Saturday that starts the trading week containing "today".
+function getUpcomingWeekMonday() {
+  const d = new Date();
+  const day = d.getDay(); // 0=Sun..6=Sat
+  const offset = (day === 6) ? 0 : (day + 1); // days since last Saturday
+  const start = new Date(d);
+  start.setDate(d.getDate() - offset);
+  start.setHours(0,0,0,0);
+  return start; // Saturday 00:00
+}
+
+function getWeekDates() {
+  const sat = getUpcomingWeekMonday(); // Saturday start of trading week
+  const dates = {};
+  ['SAT','SUN','MON','TUE','WED','THU','FRI'].forEach((day, i) => {
+    const d = new Date(sat);
+    d.setDate(sat.getDate() + i);
+    dates[day] = d;
+  });
+  return dates;
+}
+
+function getFridayEnd() {
+  const sat = getUpcomingWeekMonday(); // Saturday start
+  const fri = new Date(sat);
+  fri.setDate(sat.getDate() + 6); // Saturday + 6 = Friday
+  fri.setHours(23,59,59,999);
+  return fri;
+}
 
 // Live macro events loaded from FF RSS (or cache)
 let MACRO_EVENTS = [];
@@ -1052,7 +1085,7 @@ function parseImpact(title) {
   const t = title.toLowerCase();
   if(HIGH_IMPACT_KEYWORDS.some(k => t.includes(k))) return 'high';
   if(MED_IMPACT_KEYWORDS.some(k => t.includes(k))) return 'med';
-  return null;
+  return null; // skip low impact
 }
 
 function parseCurrency(title) {
@@ -1081,12 +1114,14 @@ function parseFForexFactoryRSS(xmlText) {
   const parser = new DOMParser();
   const xml = parser.parseFromString(xmlText, 'text/xml');
 
+  // faireconomy.media uses <event> tags; FF RSS uses <item> tags
   let items = Array.from(xml.querySelectorAll('event'));
   if(items.length === 0) items = Array.from(xml.querySelectorAll('item'));
 
-  const rawEvents = [];
+  const events = [];
 
   items.forEach(item => {
+    // faireconomy format fields
     const title    = (item.querySelector('title')?.textContent || '').trim();
     const country  = (item.querySelector('country')?.textContent || '').trim().toUpperCase();
     const date     = (item.querySelector('date')?.textContent || item.querySelector('pubDate')?.textContent || '').trim();
@@ -1095,18 +1130,17 @@ function parseFForexFactoryRSS(xmlText) {
     const forecast = (item.querySelector('forecast')?.textContent || '').trim();
     const previous = (item.querySelector('previous')?.textContent || '').trim();
 
-    // Trust the feed's own High flag first — most reliable signal
-    // Fall back to keyword matching to catch FOMC and others that may be mislabelled
+    // Map faireconomy impact levels
     let impactLevel;
-    if(impact === 'high' || impact === '3') {
-      impactLevel = 'high';
-    } else if(impact === 'medium' || impact === 'moderate' || impact === '2') {
-      impactLevel = parseImpact(title) === 'high' ? 'high' : 'med';
-    } else {
+    if(impact === 'high' || impact === '3') impactLevel = 'high';
+    else if(impact === 'medium' || impact === 'moderate' || impact === '2') impactLevel = 'med';
+    else {
+      // Fallback: detect from title keywords
       impactLevel = parseImpact(title);
     }
-    if(!impactLevel) return;
+    if(!impactLevel) return; // skip low impact
 
+    // Map country to currency
     const COUNTRY_CURRENCY = {
       'US':'USD','USD':'USD','UNITED STATES':'USD',
       'GB':'GBP','UK':'GBP','GBP':'GBP','UNITED KINGDOM':'GBP',
@@ -1122,10 +1156,12 @@ function parseFForexFactoryRSS(xmlText) {
 
     const pairs = CURRENCY_PAIRS_MAP[currency];
 
+    // Parse day of week from date field
     const d = new Date(date);
     const day = isNaN(d) ? parseDayFromDate(date) : ['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()];
     if(!day || day==='SAT'||day==='SUN'||day==='FRI') return;
 
+    // Format time
     let displayTime = 'Tentative';
     if(time && time !== '00:00' && time !== '') {
       displayTime = time.includes('GMT') ? time : `${time} GMT`;
@@ -1133,42 +1169,24 @@ function parseFForexFactoryRSS(xmlText) {
       displayTime = parseTimeFromDate(date);
     }
 
+    // Build description
     let desc = `${currency} event`;
     if(forecast) desc += ` · Forecast: ${forecast}`;
     if(previous) desc += ` · Previous: ${previous}`;
     desc += '. Check forexfactory.com for full analysis.';
 
+    // Store actual date (YYYY-MM-DD) for calendar matching
     let dateStr = null;
     if(!isNaN(d)) {
       dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
 
-    rawEvents.push({ day, time: displayTime, name: title, impact: impactLevel, currency, desc, pairs, date: dateStr });
+    events.push({ day, time: displayTime, name: title, impact: impactLevel, currency, desc, pairs, date: dateStr });
   });
 
-  // ── Deduplicate: same currency + same day + same time → merge into one event ──
-  // Keep the most descriptive (longest) name, combine pair lists
-  const dedupMap = {};
-  rawEvents.forEach(e => {
-    const key = `${e.currency}|${e.day}|${e.time}|${e.impact}`;
-    if(!dedupMap[key]) {
-      dedupMap[key] = { ...e, pairs: [...e.pairs] };
-    } else {
-      // Keep the longer name as it's usually more descriptive
-      if(e.name.length > dedupMap[key].name.length) dedupMap[key].name = e.name;
-      // Merge pairs without duplicates
-      e.pairs.forEach(p => { if(!dedupMap[key].pairs.includes(p)) dedupMap[key].pairs.push(p); });
-    }
-  });
-
-  const events = Object.values(dedupMap);
-
-  // Sort by day then time
+  // Sort by day order
   const dayOrder = {MON:0,TUE:1,WED:2,THU:3};
-  events.sort((a,b) => {
-    const dd = (dayOrder[a.day]||0) - (dayOrder[b.day]||0);
-    return dd !== 0 ? dd : (a.time||'').localeCompare(b.time||'');
-  });
+  events.sort((a,b) => (dayOrder[a.day]||0) - (dayOrder[b.day]||0));
 
   return events;
 }
@@ -1248,889 +1266,439 @@ function updateMacroStatus(status, count) {
   }
 }
 
-// ── STATE ──
-let selectedPairs = [...YOUR_PAIRS];
-let apiKey = '';
-let analysisResults = [];
-let currentFilter = 'all';
+// ── MACRO EVENTS DISPLAY ──
 let macroFilter = 'all';
-let isScanning = false;
-let scanQueue = [];
-let scanDone = 0;
-let scanTotal = 0;
 
-// ── WEEK DATE HELPERS ──
-// When opened on Saturday or Sunday, show the UPCOMING week (Mon–Fri)
-// When opened Mon–Fri, show the CURRENT week
-// Trading week runs Saturday 00:00 → Friday 23:59.
-// Returns the Saturday that starts the trading week containing "today".
-function getUpcomingWeekMonday() {
-  const d = new Date();
-  const day = d.getDay(); // 0=Sun..6=Sat
-  const offset = (day === 6) ? 0 : (day + 1); // days since last Saturday
-  const start = new Date(d);
-  start.setDate(d.getDate() - offset);
-  start.setHours(0,0,0,0);
-  return start; // Saturday 00:00
+function refreshMacro() {
+  fetchMacroEvents();
 }
 
-function getWeekDates() {
-  const sat = getUpcomingWeekMonday(); // Saturday start of trading week
-  const dates = {};
-  ['SAT','SUN','MON','TUE','WED','THU','FRI'].forEach((day, i) => {
-    const d = new Date(sat);
-    d.setDate(sat.getDate() + i);
-    dates[day] = d;
-  });
-  return dates;
-}
-
-// ── CACHE ──
-function getWeekKey() {
-  const mon = getUpcomingWeekMonday();
-  return `forex_results_${mon.getFullYear()}_${mon.getMonth()}_${mon.getDate()}`;
-}
-function getFridayEnd() {
-  const sat = getUpcomingWeekMonday(); // Saturday start
-  const fri = new Date(sat);
-  fri.setDate(sat.getDate() + 6); // Saturday + 6 = Friday
-  fri.setHours(23,59,59,999);
-  return fri;
-}
-function saveResults() {
-  const payload = { results: analysisResults, savedAt: Date.now(), expiresAt: getFridayEnd().getTime() };
-  localStorage.setItem(getWeekKey(), JSON.stringify(payload));
-}
-function loadCachedResults() {
-  const raw = localStorage.getItem(getWeekKey());
-  if(!raw) return null;
-  try {
-    const p = JSON.parse(raw);
-    if(Date.now() > p.expiresAt) { localStorage.removeItem(getWeekKey()); return null; }
-    return p;
-  } catch(e) { return null; }
-}
-function clearOldCaches() {
-  const ck = getWeekKey();
-  Object.keys(localStorage).forEach(k => { if(k.startsWith('forex_results_') && k!==ck) localStorage.removeItem(k); });
-}
-
-// ── INIT ──
-function init() {
-  clearOldCaches();
-  clearOldMacroCaches();
-
-  const sat = getUpcomingWeekMonday(); // Saturday start of trading week
-  const fri = new Date(sat); fri.setDate(sat.getDate() + 6); // Saturday + 6 = Friday
-  const fmt      = x => x.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-  const fmtShort = x => x.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-  const weekStr  = `${fmtShort(sat)} – ${fmt(fri)}`;
-  document.getElementById('navWeek').textContent = weekStr;
-  document.getElementById('macroSubtitle').textContent = `Week of ${weekStr}`;
-
-  const saved = localStorage.getItem('td_api_key');
-  if(saved) { apiKey=saved; document.getElementById('apiKey').value=saved; document.getElementById('apiStatus').className='api-status ok'; document.getElementById('apiStatus').textContent='API key loaded'; enableScanButtons(); }
-
-  const savedPairs = localStorage.getItem('selected_pairs_v2');
-  if(savedPairs) selectedPairs = JSON.parse(savedPairs);
-
-  buildPairsGrid();
-  updatePairCount();
-
-  // Load macro events — use cache if available, otherwise fetch live
-  const cachedMacro = loadMacroCache();
-  if(cachedMacro && cachedMacro.length > 0) {
-    MACRO_EVENTS = cachedMacro;
-    macroLoadStatus = 'loaded';
-    updateMacroStatus('loaded', cachedMacro.length);
-    renderMacroEvents();
-  } else {
-    macroLoadStatus = 'loading';
-    renderMacroEvents();
-    fetchMacroEvents();
-  }
-
-  const cached = loadCachedResults();
-  if(cached) {
-    analysisResults = cached.results;
-    const sa = new Date(cached.savedAt), ex = new Date(cached.expiresAt);
-    document.getElementById('cacheBanner').style.display = 'flex';
-    document.getElementById('cacheTime').textContent = `· scanned ${sa.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'})} at ${sa.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
-    document.getElementById('cacheExpiry').textContent = `Expires ${ex.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'})} at midnight`;
-    renderAllResults();
-  }
-}
-
-// ── NAV ──
-function showPage(page, btn) {
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  btn.classList.add('active');
-  // Re-render principles when tab is opened so autoResize works on now-visible page
-  if(page === 'principles') requestAnimationFrame(() => renderPrinciples());
-}
-
-// ── MACRO ──
 function setMacroFilter(f) {
   macroFilter = f;
-  document.querySelectorAll('.mf-btn').forEach(b=>b.classList.remove('active','high-active'));
-  const btn = document.getElementById('mf-'+f);
-  if(btn) btn.classList.add(f==='high'?'high-active':'active');
+  document.querySelectorAll('.mf-btn').forEach(b => b.classList.remove('active','high-active'));
+  const btn = document.getElementById('mf-' + f);
+  if(btn) btn.classList.add(f === 'high' ? 'high-active' : 'active');
   renderMacroEvents();
 }
 
 function currencyClass(cur) {
-  return {USD:'cur-usd',GBP:'cur-gbp',EUR:'cur-eur',AUD:'cur-aud',CAD:'cur-cad',NZD:'cur-nzd',JPY:'cur-jpy',CHF:'cur-chf'}[cur]||'cur-usd';
+  return { USD:'cur-usd', GBP:'cur-gbp', EUR:'cur-eur', AUD:'cur-aud', CAD:'cur-cad', NZD:'cur-nzd', JPY:'cur-jpy', CHF:'cur-chf' }[cur] || 'cur-usd';
 }
 
 function renderMacroEvents() {
   const container = document.getElementById('macroEventsList');
+  if(!container) return;
 
-  // Loading state
   if(macroLoadStatus === 'loading') {
-    container.innerHTML = `<div class="empty" style="color:var(--accent)"><span class="spinning" style="font-size:20px">⟳</span><br><br>Fetching live events from Forex Factory...<br><span style="font-size:11px;color:var(--muted);margin-top:6px;display:block">This may take a few seconds</span></div>`;
-    return;
-  }
-
-  // Failed with no cache
-  if(macroLoadStatus === 'failed' && MACRO_EVENTS.length === 0) {
-    container.innerHTML = `<div class="empty">
-      <div style="font-size:24px;margin-bottom:12px">⚠️</div>
-      <div style="color:var(--bear);margin-bottom:8px">Could not load live events</div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.6">
-        Forex Factory RSS could not be reached.<br>
-        Please visit <a href="https://www.forexfactory.com/calendar" target="_blank" style="color:var(--accent)">forexfactory.com/calendar</a> directly<br>
-        or click Retry above to try again.
-      </div>
-    </div>`;
+    container.innerHTML = '<div class="empty">Loading live events from Forex Factory...</div>';
     return;
   }
 
   let events = MACRO_EVENTS;
-  if(macroFilter==='high') events=events.filter(e=>e.impact==='high');
-  else if(macroFilter!=='all') events=events.filter(e=>e.currency===macroFilter);
+  if(macroFilter === 'high') events = events.filter(e => e.impact === 'high');
+  else if(macroFilter !== 'all') events = events.filter(e => e.currency === macroFilter);
 
-  // Update stats
-  document.getElementById('highCount').textContent = MACRO_EVENTS.filter(e=>e.impact==='high').length;
-  document.getElementById('medCount').textContent  = MACRO_EVENTS.filter(e=>e.impact==='med').length;
-  document.getElementById('eventDays').textContent = [...new Set(MACRO_EVENTS.map(e=>e.day))].length;
+  document.getElementById('highCount').textContent = MACRO_EVENTS.filter(e => e.impact === 'high').length;
+  document.getElementById('medCount').textContent  = MACRO_EVENTS.filter(e => e.impact === 'med').length;
+  document.getElementById('eventDays').textContent  = [...new Set(MACRO_EVENTS.map(e => e.day))].length;
 
-  // Group by day and show actual dates
-  const grouped = {MON:[],TUE:[],WED:[],THU:[]};
-  events.forEach(e=>{ if(grouped[e.day]) grouped[e.day].push(e); });
-
-  // Get actual calendar dates for each day this week
-  const weekDates = getWeekDates();
+  const grouped = { MON:[], TUE:[], WED:[], THU:[] };
+  events.forEach(e => { if(grouped[e.day]) grouped[e.day].push(e); });
 
   container.innerHTML = '';
 
-  let hasAny = false;
-  Object.entries(grouped).forEach(([day,evs])=>{
-    if(!evs.length) return;
-    hasAny = true;
-    const dateStr = weekDates[day]
-      ? weekDates[day].toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})
-      : '';
-    const g = document.createElement('div'); g.className='day-group';
-    g.innerHTML = `<div class="day-label">
-      <div class="day-name">${DAY_NAMES[day]}<span style="font-weight:400;color:var(--muted);margin-left:8px;font-size:12px">${dateStr}</span></div>
-      <div class="day-line"></div>
-      <div class="day-count">${evs.length} event${evs.length>1?'s':''}</div>
-    </div>`;
-    evs.forEach(e=>{
-      const ap = (e.pairs||[]).filter(p=>YOUR_PAIRS.includes(p));
-      const card = document.createElement('div'); card.className=`event-card ${e.impact}`;
-      card.innerHTML=`
+  Object.entries(grouped).forEach(([day, evs]) => {
+    if(evs.length === 0) return;
+    const group = document.createElement('div');
+    group.className = 'day-group';
+    group.innerHTML = `<div class="day-label"><div class="day-name">${DAY_NAMES[day]}</div><div class="day-line"></div><div class="day-count">${evs.length} event${evs.length>1?'s':''}</div></div>`;
+    evs.forEach(e => {
+      const affectedPairs = (e.pairs || []).filter(p => YOUR_PAIRS.includes(p));
+      const card = document.createElement('div');
+      card.className = `event-card ${e.impact}`;
+      card.innerHTML = `
         <div class="event-time">
-          <div>${e.time||'Tentative'}</div>
+          <div>${e.time}</div>
           <div class="event-currency ${currencyClass(e.currency)}">${e.currency}</div>
         </div>
-        <div>
+        <div class="event-main">
           <div class="event-name">${e.name}</div>
           <div class="event-desc">${e.desc}</div>
-          <div class="event-pairs">${ap.map(p=>`<span class="event-pair-chip">${p}</span>`).join('')}</div>
+          <div class="event-pairs">${affectedPairs.map(p => `<span class="event-pair-chip">${p}</span>`).join('')}</div>
         </div>
-        <div><span class="impact-badge ${e.impact}">${e.impact==='high'?'🔴 HIGH':'🟡 MED'}</span></div>`;
-      g.appendChild(card);
+        <div><span class="impact-badge ${e.impact}">${e.impact === 'high' ? '🔴 HIGH' : '🟡 MED'}</span></div>`;
+      group.appendChild(card);
     });
-    container.appendChild(g);
+    container.appendChild(group);
   });
 
-  if(!hasAny) container.innerHTML='<div class="empty">No events match this filter.</div>';
+  if(container.innerHTML === '') {
+    container.innerHTML = '<div class="empty">No events match this filter.</div>';
+  }
 }
 
-async function refreshMacro() {
-  // Clear cache so we force a fresh fetch
-  localStorage.removeItem(getMacroWeekKey());
-  MACRO_EVENTS = [];
-  macroLoadStatus = 'idle';
-  await fetchMacroEvents();
-}
+// ── STATE ──
+// ══════════════════════════════════════════════════════
+// ── SCORING SYSTEM STATE ──
+// ══════════════════════════════════════════════════════
+// pairStatus: { 'EUR/USD': 'scoring'|'not-trading'|'none' }
+// scores: { 'EUR/USD': { trend, direction, snr, ema, fundamental, rr, structure } }
+let pairStatus  = {};
+let scores      = {};
+let scoringFilter = 'all';
+let apiKey = ''; // Twelve Data API key, used by Risk Calculator for live rate fetching
 
-// ── PAIRS GRID ──
-function buildPairsGrid() {
-  const grid = document.getElementById('pairsGrid');
-  grid.innerHTML = '';
-  YOUR_PAIRS.forEach(pair=>{
-    const chip = document.createElement('div');
-    chip.id = 'chip-'+pair.replace('/','_');
-    chip.className = 'pair-chip'+(selectedPairs.includes(pair)?' active':'');
-    chip.textContent = pair;
-    chip.onclick = ()=>{
-      if(isScanning) return;
-      if(selectedPairs.includes(pair)){ selectedPairs=selectedPairs.filter(p=>p!==pair); chip.classList.remove('active'); }
-      else { selectedPairs.push(pair); chip.classList.add('active'); }
-      localStorage.setItem('selected_pairs_v2',JSON.stringify(selectedPairs));
-      updatePairCount();
-    };
-    grid.appendChild(chip);
-  });
-}
-function setChipState(pair, state) {
-  const chip = document.getElementById('chip-'+pair.replace('/','_'));
-  if(!chip) return;
-  chip.className = 'pair-chip '+state;
-  if(state==='scanning') chip.innerHTML=`<span class="spinning">⟳</span> ${pair}`;
-  else chip.textContent = pair;
-}
-function selectAll() { if(isScanning)return; selectedPairs=[...YOUR_PAIRS]; document.querySelectorAll('.pair-chip').forEach(c=>c.classList.add('active')); localStorage.setItem('selected_pairs_v2',JSON.stringify(selectedPairs)); updatePairCount(); }
-function selectNone() { if(isScanning)return; selectedPairs=[]; document.querySelectorAll('.pair-chip').forEach(c=>c.classList.remove('active')); localStorage.setItem('selected_pairs_v2',JSON.stringify(selectedPairs)); updatePairCount(); }
-function updatePairCount() { document.getElementById('pairCount').textContent=`${selectedPairs.length} of ${YOUR_PAIRS.length} pairs selected`; }
-function enableScanButtons() { document.getElementById('btnScanAll').disabled=false; document.getElementById('btnScanSelected').disabled=false; }
-
-// ── API ──
+// ── API KEY MANAGEMENT (Settings page) ──
 async function testAPI() {
   const key = document.getElementById('apiKey').value.trim();
   if(!key) return;
   const st = document.getElementById('apiStatus');
-  st.className='api-status'; st.textContent='Testing connection...';
+  st.className = 'api-status'; st.textContent = 'Testing connection...';
   try {
     const r = await fetch(`https://api.twelvedata.com/time_series?symbol=EUR/USD&interval=1week&outputsize=3&apikey=${key}`);
     const d = await r.json();
-    if(d.status==='error') throw new Error(d.message);
-    apiKey=key; localStorage.setItem('td_api_key',key);
-    st.className='api-status ok'; st.textContent='Connected — API key saved locally';
-    enableScanButtons();
-  } catch(e) { st.className='api-status err'; st.textContent='Connection failed: '+e.message; }
-}
-function clearAPI() { apiKey=''; document.getElementById('apiKey').value=''; document.getElementById('apiStatus').textContent=''; document.getElementById('btnScanAll').disabled=true; document.getElementById('btnScanSelected').disabled=true; localStorage.removeItem('td_api_key'); }
-
-// ── CANDLE FETCH ──
-async function fetchCandles(pair, interval, size) {
-  const r = await fetch(`https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(pair)}&interval=${interval}&outputsize=${size}&apikey=${apiKey}`);
-  const d = await r.json();
-  if(d.status==='error') throw new Error(d.message);
-  return (d.values||[]).reverse().map(v=>({
-    open:parseFloat(v.open), high:parseFloat(v.high),
-    low:parseFloat(v.low),   close:parseFloat(v.close)
-  }));
-}
-
-// ── TREND DETECTION — Close-price only (matches TradingView line chart) ──
-//
-// You identify market structure using TradingView's LINE CHART mode,
-// which plots closes only. Therefore ALL swing point detection and
-// structure comparisons use candle.close exclusively — never high/low wicks.
-//
-// A swing high = close higher than the 2 closes on each side
-// A swing low  = close lower  than the 2 closes on each side
-//
-// Full pivot sequence approach:
-// 1. Scan all closes for swing points
-// 2. Build clean alternating H/L sequence (keep most extreme between direction changes)
-// 3. Most recent pivot type = current trend direction
-// 4. Walk back through full sequence to find dominant (outermost unbroken) structure
-// 5. Return trend direction only — key levels not needed (done manually on TradingView)
-
-function detectTrendStructure(candles) {
-  if(!candles || candles.length < 10) return { trend:'neutral', keyHigh:null, keyLow:null };
-
-  const n = candles.length;
-  const closes = candles.map(c => c.close);
-
-  // ── Step 1: Find all swing highs and lows using CLOSES ONLY ──
-  const pivots = []; // { idx, type:'H'|'L', price (= close) }
-
-  for(let i = 2; i < n - 2; i++) {
-    const c = closes[i];
-    const isHigh = c > closes[i-1] && c > closes[i-2] && c > closes[i+1] && c > closes[i+2];
-    const isLow  = c < closes[i-1] && c < closes[i-2] && c < closes[i+1] && c < closes[i+2];
-    if(isHigh) pivots.push({ idx:i, type:'H', price: c });
-    if(isLow)  pivots.push({ idx:i, type:'L', price: c });
-  }
-
-  // Fallback: not enough pivots
-  if(pivots.length < 2) {
-    const maxClose = Math.max(...closes);
-    const minClose = Math.min(...closes);
-    const maxIdx   = closes.indexOf(maxClose);
-    const minIdx   = closes.indexOf(minClose);
-    return { trend: maxIdx > minIdx ? 'bullish' : 'bearish', keyHigh: maxClose, keyLow: minClose };
-  }
-
-  // ── Step 2: Clean into alternating H/L sequence ──
-  // Consecutive same-type pivots → keep only the most extreme
-  const clean = [pivots[0]];
-  for(let i = 1; i < pivots.length; i++) {
-    const last = clean[clean.length - 1];
-    if(pivots[i].type === last.type) {
-      if(pivots[i].type === 'H' && pivots[i].price > last.price) clean[clean.length-1] = pivots[i];
-      if(pivots[i].type === 'L' && pivots[i].price < last.price) clean[clean.length-1] = pivots[i];
-    } else {
-      clean.push(pivots[i]);
-    }
-  }
-
-  if(clean.length < 2) {
-    const p = clean[0];
-    return { trend: p.type==='H' ? 'bullish' : 'bearish', keyHigh: p.price, keyLow: p.price };
-  }
-
-  // ── Step 3: Determine trend from most recent pivot ──
-  const lastPivot    = clean[clean.length - 1];
-  const currentClose = closes[n - 1];
-  let trend          = lastPivot.type === 'H' ? 'bullish' : 'bearish';
-
-  // ── Step 4: Find dominant structure ──
-  // Walk back to check if current structure sits inside a LARGER unbroken structure
-  // For bullish: is there a higher close-high that current price hasn't closed above?
-  // For bearish: is there a lower close-low that current price hasn't closed below?
-  // The outermost unbroken structure is the dominant trend
-
-  let dominantHigh = null;
-  let dominantLow  = null;
-
-  if(trend === 'bullish') {
-    // Find most recent H pivot and the L before it
-    let recentH = null, recentL = null;
-    for(let i = clean.length - 1; i >= 0; i--) {
-      if(!recentH && clean[i].type === 'H') { recentH = clean[i]; }
-      if(recentH && !recentL && clean[i].type === 'L') { recentL = clean[i]; break; }
-    }
-    dominantHigh = recentH ? recentH.price : null;
-    dominantLow  = recentL ? recentL.price : null;
-
-    // Walk further back — if larger H exists that close hasn't broken, it's dominant
-    if(recentH) {
-      const startIdx = clean.indexOf(recentH) - 1;
-      for(let i = startIdx; i >= 0; i--) {
-        if(clean[i].type === 'H' && clean[i].price > dominantHigh && currentClose < clean[i].price) {
-          dominantHigh = clean[i].price;
-          for(let j = i - 1; j >= 0; j--) {
-            if(clean[j].type === 'L') { dominantLow = clean[j].price; break; }
-          }
-        }
-      }
-    }
-
-  } else {
-    // Find most recent L pivot and the H before it
-    let recentL = null, recentH = null;
-    for(let i = clean.length - 1; i >= 0; i--) {
-      if(!recentL && clean[i].type === 'L') { recentL = clean[i]; }
-      if(recentL && !recentH && clean[i].type === 'H') { recentH = clean[i]; break; }
-    }
-    dominantLow  = recentL ? recentL.price : null;
-    dominantHigh = recentH ? recentH.price : null;
-
-    // Walk further back — if larger L exists that close hasn't broken, it's dominant
-    if(recentL) {
-      const startIdx = clean.indexOf(recentL) - 1;
-      for(let i = startIdx; i >= 0; i--) {
-        if(clean[i].type === 'L' && clean[i].price < dominantLow && currentClose > clean[i].price) {
-          dominantLow = clean[i].price;
-          for(let j = i - 1; j >= 0; j--) {
-            if(clean[j].type === 'H') { dominantHigh = clean[j].price; break; }
-          }
-        }
-      }
-    }
-  }
-
-  // ── Step 5: Fallback if dominant levels not found ──
-  if(!dominantHigh || !dominantLow) {
-    for(let i = clean.length - 1; i >= 1; i--) {
-      if(clean[i].type !== clean[i-1].type) {
-        dominantHigh = clean[i].type === 'H' ? clean[i].price : clean[i-1].price;
-        dominantLow  = clean[i].type === 'L' ? clean[i].price : clean[i-1].price;
-        trend = clean[i].type === 'H' ? 'bullish' : 'bearish';
-        break;
-      }
-    }
-  }
-
-  return { trend, keyHigh: dominantHigh, keyLow: dominantLow };
-}
-
-// Convenience wrapper
-function detectTrend(candles) {
-  return detectTrendStructure(candles).trend;
-}
-
-// ── CORRECTED AOI DETECTION ──
-// A valid touch = market structure point (swing high/low) whose candle body
-// closes within OR touches the zone, then rejects back out.
-// Candles that close through the zone and continue in the same direction
-// without reversing are NOT counted as touches.
-function isValidTouch(candle, level, touchTol, trend) {
-  const bodyTop    = Math.max(candle.open, candle.close);
-  const bodyBottom = Math.min(candle.open, candle.close);
-
-  if(trend === 'bullish') {
-    // Support: candle low or body enters zone (within touchTol above level)
-    // AND candle closes above the level — i.e. it rejected back out upward
-    const entersZone = candle.low <= level + touchTol;
-    const rejectsOut = candle.close > level - touchTol * 0.3;
-    // Exclude candles that close well below the level (passed through)
-    const doesntPassThrough = bodyBottom >= level - touchTol;
-    return entersZone && rejectsOut && doesntPassThrough;
-  } else {
-    // Resistance: candle high or body enters zone (within touchTol below level)
-    // AND candle closes below the level — i.e. it rejected back out downward
-    const entersZone = candle.high >= level - touchTol;
-    const rejectsOut = candle.close < level + touchTol * 0.3;
-    // Exclude candles that close well above the level (passed through)
-    const doesntPassThrough = bodyTop <= level + touchTol;
-    return entersZone && rejectsOut && doesntPassThrough;
+    if(d.status === 'error') throw new Error(d.message);
+    apiKey = key;
+    localStorage.setItem('td_api_key', key);
+    st.className = 'api-status ok';
+    st.textContent = 'Connected — API key saved locally';
+  } catch(e) {
+    st.className = 'api-status err';
+    st.textContent = 'Connection failed: ' + e.message;
   }
 }
 
-function detectAOIOnTimeframe(candles, trend, tfLabel, keyHigh, keyLow) {
-  if(!candles || candles.length < 10) return [];
-
-  const pip      = candles[0]?.close < 10 ? 0.001 : 0.0001;
-  const maxZone  = 60 * pip;
-  const touchTol = 30 * pip;
-  const minTouches = 3;
-
-  const currentPrice = candles[candles.length-1].close;
-
-  // Use confirmed structural boundaries from detectTrendStructure
-  // All zones within these boundaries are valid (including B&R levels)
-  const structureMax = keyHigh || Math.max(...candles.map(c => c.high));
-  const structureMin = keyLow  || Math.min(...candles.map(c => c.low));
-
-  // Build candidate levels from swing highs and lows
-  // For bullish: support levels = swing lows
-  // For bearish: resistance levels = swing highs
-  // We include BOTH for break and retest — a former support can become
-  // resistance after a break, and vice versa
-  const candidates = [];
-  for(let i=2; i<candles.length-2; i++){
-    // Swing lows (potential support/broken resistance)
-    if(candles[i].low < candles[i-1].low && candles[i].low < candles[i+1].low)
-      candidates.push({ level: candles[i].low, baseType: 'support' });
-    // Swing highs (potential resistance/broken support)
-    if(candles[i].high > candles[i-1].high && candles[i].high > candles[i+1].high)
-      candidates.push({ level: candles[i].high, baseType: 'resistance' });
-  }
-
-  const zones = [];
-
-  candidates.forEach(({ level, baseType }) => {
-    // Skip if already covered by an existing zone
-    if(zones.some(z => Math.abs(z.level - level) < touchTol)) return;
-
-    // Must be within the overall trend structure range
-    if(level < structureMin || level > structureMax) return;
-
-    // Count valid touches at this level
-    let touches = 0;
-    for(let j=0; j<candles.length; j++){
-      // For each candle, check if it touches and rejects at this level
-      // regardless of direction — the zone itself determines the type
-      const asSupport    = isValidTouch(candles[j], level, touchTol, 'bullish');
-      const asResistance = isValidTouch(candles[j], level, touchTol, 'bearish');
-      if(asSupport || asResistance) touches++;
-    }
-
-    if(touches < minTouches) return;
-
-    // Determine zone type based on position relative to current price
-    // and the overall trend:
-    // - Below current price in bullish = active support
-    // - Above current price in bullish = broken resistance (B&R target)
-    // - Above current price in bearish = active resistance
-    // - Below current price in bearish = broken support (B&R target)
-    let type;
-    if(trend === 'bullish') {
-      type = level < currentPrice ? 'support' : 'broken resistance (B&R)';
-    } else {
-      type = level > currentPrice ? 'resistance' : 'broken support (B&R)';
-    }
-
-    const distancePips = Math.abs(currentPrice - level) / pip;
-
-    zones.push({
-      level,
-      touches,
-      type,
-      pips: Math.round(maxZone / pip),
-      source: tfLabel,
-      distancePips: Math.round(distancePips)
-    });
-  });
-
-  // Sort: active zones (closer to price) first, B&R zones after
-  // Within each group, sort by proximity
-  return zones
-    .sort((a,b) => {
-      const aIsBR = a.type.includes('B&R');
-      const bIsBR = b.type.includes('B&R');
-      if(aIsBR !== bIsBR) return aIsBR ? 1 : -1;
-      return a.distancePips - b.distancePips;
-    })
-    .slice(0, 5);
+function clearAPI() {
+  apiKey = '';
+  document.getElementById('apiKey').value = '';
+  document.getElementById('apiStatus').textContent = '';
+  localStorage.removeItem('td_api_key');
 }
 
-// Combine Weekly + Daily zones: if a W zone and D zone are within 30 pips,
-// merge them into a single stronger "confluence" zone
-function combineZones(weeklyZones, dailyZones, pip) {
-  const combined = [];
-  const matchTol = 30 * pip;
-  const usedDaily = new Set();
+const SCORE_WEEK_KEY = () => {
+  const mon = getUpcomingWeekMonday();
+  return `forex_scores_${mon.getFullYear()}_${mon.getMonth()}_${mon.getDate()}`;
+};
 
-  weeklyZones.forEach(wz => {
-    const matchingDaily = dailyZones.find((dz, idx) =>
-      !usedDaily.has(idx) && Math.abs(dz.level - wz.level) < matchTol
-    );
-    if(matchingDaily) {
-      const dIdx = dailyZones.indexOf(matchingDaily);
-      usedDaily.add(dIdx);
-      // Use the average level, combined touches, mark as confluence
-      combined.push({
-        level:        (wz.level + matchingDaily.level) / 2,
-        touches:      wz.touches + matchingDaily.touches,
-        type:         wz.type,
-        pips:         wz.pips,
-        source:       'combined',
-        distancePips: Math.min(wz.distancePips, matchingDaily.distancePips)
-      });
-    } else {
-      combined.push(wz);
-    }
-  });
-
-  // Add remaining unmatched daily zones
-  dailyZones.forEach((dz, idx) => {
-    if(!usedDaily.has(idx)) combined.push(dz);
-  });
-
-  return combined
-    .sort((a,b) => {
-      // Confluence zones rank highest, then by proximity
-      const scoreA = (a.source==='combined'?0:1) + a.distancePips/10000;
-      const scoreB = (b.source==='combined'?0:1) + b.distancePips/10000;
-      return scoreA - scoreB;
-    })
-    .slice(0, 3);
+function saveScores() {
+  localStorage.setItem(SCORE_WEEK_KEY(), JSON.stringify({ pairStatus, scores, savedAt: Date.now(), expiresAt: getFridayEnd().getTime() }));
 }
 
-// ── H&S DETECTION ──
-function detectHS(candles) {
-  if(candles.length < 20) return false;
-  const h = candles.slice(-20).map(c=>c.high);
-  const m = Math.floor(h.length/2);
-  const lp = Math.max(...h.slice(0,m-2));
-  const hd = Math.max(...h.slice(m-2,m+3));
-  const rp = Math.max(...h.slice(m+2));
-  return hd>lp*1.003 && hd>rp*1.003 && Math.abs(lp-rp)/lp<0.015;
+function loadScores() {
+  const raw = localStorage.getItem(SCORE_WEEK_KEY());
+  if(!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    if(Date.now() > d.expiresAt) { localStorage.removeItem(SCORE_WEEK_KEY()); return; }
+    pairStatus = d.pairStatus || {};
+    scores     = d.scores     || {};
+  } catch(e) {}
 }
 
-// ── VERDICT ──
-function getVerdict(w,d,h,aois) {
-  if(w!=='neutral'&&w===d&&d===h&&aois.length>=1) return 'GO';
-  if((w===d||d===h)&&w!=='neutral'&&aois.length>=1) return 'WATCH';
-  return 'AVOID';
+function clearOldScoreCaches() {
+  const ck = SCORE_WEEK_KEY();
+  Object.keys(localStorage).forEach(k => { if(k.startsWith('forex_scores_') && k !== ck) localStorage.removeItem(k); });
 }
 
-// ── ANALYSE ONE PAIR ──
-async function analysePair(pair) {
-  // Weekly: 104 candles ≈ 2 years
-  // Daily:  520 candles ≈ 2 years
-  // 4H:     120 candles ≈ 20 days (trend confirmation only)
-  const [weekly, daily, h4] = await Promise.all([
-    fetchCandles(pair, '1week', 104),
-    fetchCandles(pair, '1day',  520),
-    fetchCandles(pair, '4h',    120)
-  ]);
-
-  // Use full structure tracking — returns trend + key structural levels
-  const wStruct = detectTrendStructure(weekly);
-  const dStruct = detectTrendStructure(daily);
-  const hStruct = detectTrendStructure(h4);
-
-  const wTrend = wStruct.trend;
-  const dTrend = dStruct.trend;
-  const hTrend = hStruct.trend;
-
-  // Overall direction: all 3 must agree for GO; 2 of 3 for WATCH
-  const dir = (wTrend===dTrend && dTrend===hTrend && wTrend!=='neutral')
-    ? wTrend
-    : (wTrend===dTrend && wTrend!=='neutral') ? wTrend
-    : (dTrend===hTrend && dTrend!=='neutral') ? dTrend
-    : 'neutral';
-
-  const pip = daily[0]?.close < 10 ? 0.001 : 0.0001;
-
-  // Pass the structural key levels to AOI detection so zones are
-  // anchored within the confirmed structure, not just price range
-  const weeklyAOIs = detectAOIOnTimeframe(weekly, wTrend, 'weekly', wStruct.keyHigh, wStruct.keyLow);
-  const dailyAOIs  = detectAOIOnTimeframe(daily,  dTrend, 'daily',  dStruct.keyHigh, dStruct.keyLow);
-
-  // Combine overlapping zones
-  const aois = combineZones(weeklyAOIs, dailyAOIs, pip);
-
-  const hasHS   = detectHS(daily);
-  const verdict = getVerdict(wTrend, dTrend, hTrend, aois);
-  const price   = daily[daily.length-1]?.close || 0;
-
-  return {
-    pair, wTrend, dTrend, h4Trend:hTrend, direction:dir,
-    aois, hasHS, verdict, currentPrice:price,
-    wKeyHigh: wStruct.keyHigh, wKeyLow: wStruct.keyLow,
-    dKeyHigh: dStruct.keyHigh, dKeyLow: dStruct.keyLow
-  };
-}
-
-// ── SCAN ──
-const DELAY_BETWEEN_PAIRS = 32000; // 32s = safe within 8 credits/min
-
-async function startScan(mode) {
-  if(!apiKey) { alert('Please connect your API key in Settings first.'); return; }
-  if(isScanning) return;
-
-  scanQueue = mode==='all' ? [...YOUR_PAIRS] : [...selectedPairs];
-  if(!scanQueue.length) { alert('No pairs selected.'); return; }
-
-  isScanning = true;
-  scanDone = 0;
-  scanTotal = scanQueue.length;
-
-  const scanSet = new Set(scanQueue);
-  analysisResults = analysisResults.filter(r=>!scanSet.has(r.pair));
-
-  document.getElementById('btnScanAll').disabled = true;
-  document.getElementById('btnScanSelected').disabled = true;
-  document.getElementById('scanProgress').style.display = 'block';
-  document.getElementById('resultsSection').style.display = 'block';
-  document.getElementById('cacheBanner').style.display = 'none';
-  updateSummary();
-
-  for(const pair of scanQueue) {
-    setChipState(pair, 'scanning');
-    document.getElementById('progressText').textContent = `Scanning ${pair}...`;
-    document.getElementById('progressCount').textContent = `${scanDone+1} / ${scanTotal}`;
-    document.getElementById('progressBar').style.width = Math.round((scanDone/scanTotal)*100)+'%';
-
-    const remaining = scanTotal - scanDone;
-    const etaMin = Math.ceil((remaining * DELAY_BETWEEN_PAIRS) / 1000 / 60);
-    document.getElementById('progressEta').textContent = scanDone>0
-      ? `Estimated time remaining: ~${etaMin} min${etaMin!==1?'s':''}`
-      : `Estimated total time: ~${Math.ceil((scanTotal*DELAY_BETWEEN_PAIRS)/1000/60)} mins`;
-
-    try {
-      const result = await analysePair(pair);
-      analysisResults.push(result);
-      setChipState(pair, 'done');
-    } catch(e) {
-      analysisResults.push({pair, error:true, errorMsg:e.message, verdict:'AVOID'});
-      setChipState(pair, 'errored');
-    }
-
-    scanDone++;
-    saveResults();
-    renderAllResults();
-
-    if(scanDone < scanTotal) {
-      for(let s=Math.floor(DELAY_BETWEEN_PAIRS/1000); s>0; s--) {
-        document.getElementById('progressText').textContent = `⏳ Rate limit pause — next pair in ${s}s...`;
-        await new Promise(r=>setTimeout(r,1000));
-      }
-    }
-  }
-
-  isScanning = false;
-  document.getElementById('progressBar').style.width = '100%';
-  document.getElementById('progressText').textContent = `✓ Scan complete — ${scanTotal} pair${scanTotal!==1?'s':''} analysed`;
-  document.getElementById('progressCount').textContent = `${scanTotal} / ${scanTotal}`;
-  document.getElementById('progressEta').textContent = 'Results saved until end of Friday';
-  document.getElementById('btnScanAll').disabled = false;
-  document.getElementById('btnScanSelected').disabled = false;
-
-  const sa = new Date(), ex = getFridayEnd();
-  document.getElementById('cacheBanner').style.display = 'flex';
-  document.getElementById('cacheTime').textContent = `· scanned today at ${sa.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
-  document.getElementById('cacheExpiry').textContent = `Expires ${ex.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'})} at midnight`;
-}
-
-function clearResults() {
-  if(isScanning){ alert('Cannot clear results while scanning.'); return; }
-  if(!confirm('Clear all results for this week?')) return;
-  analysisResults=[];
-  localStorage.removeItem(getWeekKey());
-  document.getElementById('cacheBanner').style.display='none';
-  document.getElementById('summarySection').style.display='none';
-  document.getElementById('resultsSection').style.display='none';
-  document.getElementById('scanProgress').style.display='none';
-  document.getElementById('resultsContainer').innerHTML='';
-  buildPairsGrid();
-}
-
-// ── FILTER & RENDER ──
-function setFilter(f) {
-  currentFilter=f;
-  ['all','go','watch','bull','bear'].forEach(x=>{
-    document.getElementById('fb-'+x).className='filter-btn'+(x===f?' active':'');
-  });
-  renderAllResults(false);
-}
-
-function trendPill(tf,trend) {
-  const cls=trend==='bullish'?'tf-bull':trend==='bearish'?'tf-bear':'tf-neutral';
-  return `<span class="tf-pill ${cls}">${tf} ${trend==='bullish'?'▲':trend==='bearish'?'▼':'—'}</span>`;
-}
-
-function aoiSourceBadge(source) {
-  if(source==='combined') return '<span class="aoi-source aoi-combined">W+D confluence</span>';
-  if(source==='weekly')   return '<span class="aoi-source aoi-weekly">Weekly</span>';
-  return '<span class="aoi-source aoi-daily">Daily</span>';
-}
-
-function updateSummary() {
-  const ok = analysisResults.filter(r=>!r.error);
-  document.getElementById('sumScanned').textContent = analysisResults.length;
-  document.getElementById('sumBull').textContent = ok.filter(r=>r.direction==='bullish').length;
-  document.getElementById('sumBear').textContent = ok.filter(r=>r.direction==='bearish').length;
-  document.getElementById('sumTop').textContent  = ok.filter(r=>r.verdict==='GO').length;
-  document.getElementById('summarySection').style.display = analysisResults.length>0 ? 'block' : 'none';
-}
-
-function renderAllResults(doSummary=true) {
-  if(doSummary) updateSummary();
-  document.getElementById('resultsSection').style.display='block';
-
-  let sorted = [...analysisResults].sort((a,b)=>
-    ({'GO':0,'WATCH':1,'AVOID':2}[a.verdict]-{'GO':0,'WATCH':1,'AVOID':2}[b.verdict])
+// ── GET MACRO EVENTS FOR A PAIR ──
+function getMacroEventsForPair(pair) {
+  const [base, quote] = pair.split('/');
+  return (MACRO_EVENTS || []).filter(e =>
+    e.impact === 'high' && (e.currency === base || e.currency === quote)
   );
+}
 
-  let filtered = sorted;
-  if(currentFilter==='go')    filtered=sorted.filter(r=>r.verdict==='GO');
-  else if(currentFilter==='watch') filtered=sorted.filter(r=>r.verdict==='WATCH');
-  else if(currentFilter==='bull')  filtered=sorted.filter(r=>r.direction==='bullish'&&!r.error);
-  else if(currentFilter==='bear')  filtered=sorted.filter(r=>r.direction==='bearish'&&!r.error);
+// ── SCORING PAIRS GRID ──
+function buildScoringPairsGrid() {
+  const grid = document.getElementById('scoringPairsGrid');
+  if(!grid) return;
+  grid.innerHTML = '';
+  YOUR_PAIRS.forEach(pair => {
+    const status = pairStatus[pair] || 'none';
+    const chip = document.createElement('div');
+    chip.className = 'score-pair-chip ' + (status !== 'none' ? status : '');
+    chip.id = 'schip-' + pair.replace('/','_');
+    chip.textContent = pair;
+    chip.onclick = () => cyclePairStatus(pair);
+    grid.appendChild(chip);
+  });
+  updateScoringCount();
+}
 
-  const scannedSet = new Set(analysisResults.map(r=>r.pair));
-  const pending = isScanning ? scanQueue.filter(p=>!scannedSet.has(p)) : [];
-
-  const c = document.getElementById('resultsContainer');
-  c.innerHTML='';
-
-  if(filtered.length===0&&pending.length===0){
-    c.innerHTML='<div class="empty">No pairs match this filter.</div>'; return;
+function cyclePairStatus(pair) {
+  const current = pairStatus[pair] || 'none';
+  if(current === 'none')        pairStatus[pair] = 'scoring';
+  else if(current === 'scoring') pairStatus[pair] = 'not-trading';
+  else                           pairStatus[pair] = 'none';
+  const chip = document.getElementById('schip-' + pair.replace('/','_'));
+  if(chip) {
+    chip.className = 'score-pair-chip ' + (pairStatus[pair] !== 'none' ? pairStatus[pair] : '');
   }
+  updateScoringCount();
+  saveScores();
+}
 
-  filtered.forEach(r=>{
-    const el=document.createElement('div');
-    if(r.error){
-      el.className='pair-card avoid-card';
-      el.innerHTML=`<div class="card-header"><div class="card-left"><span class="pair-name">${r.pair}</span></div><span style="font-family:var(--font-mono);font-size:11px;color:var(--bear)">Data error</span></div><div style="padding:0 1.25rem 1rem;font-family:var(--font-mono);font-size:11px;color:var(--muted)">${r.errorMsg||'Could not fetch data'}</div>`;
-      c.appendChild(el); return;
+function scoreMarkAll(status) {
+  YOUR_PAIRS.forEach(pair => { pairStatus[pair] = status; });
+  buildScoringPairsGrid();
+  saveScores();
+}
+
+function scoreClearAll() {
+  pairStatus = {};
+  buildScoringPairsGrid();
+  saveScores();
+}
+
+function updateScoringCount() {
+  const scoring    = YOUR_PAIRS.filter(p => pairStatus[p] === 'scoring').length;
+  const notTrading = YOUR_PAIRS.filter(p => pairStatus[p] === 'not-trading').length;
+  const sl = document.getElementById('scoringCountLabel');
+  const nl = document.getElementById('notTradingCountLabel');
+  if(sl) sl.textContent    = `${scoring} pairs to score`;
+  if(nl) nl.textContent    = `${notTrading} pairs not trading`;
+}
+
+function startScoring() {
+  const scoringPairs = YOUR_PAIRS.filter(p => pairStatus[p] === 'scoring');
+  if(scoringPairs.length === 0) { alert('Please mark at least one pair for scoring.'); return; }
+  document.getElementById('scoringPhase1').style.display = 'none';
+  document.getElementById('scoringPhase2').style.display = 'block';
+  const mon = getUpcomingWeekMonday();
+  const fri = getFridayEnd();
+  const fmt = x => x.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  const wl  = document.getElementById('scoringWeekLabel');
+  if(wl) wl.textContent = `${fmt(mon)} – ${fmt(fri)}`;
+  renderScoringCards();
+}
+
+function backToSelection() {
+  document.getElementById('scoringPhase2').style.display = 'none';
+  document.getElementById('scoringPhase1').style.display = 'block';
+}
+
+// ── CALCULATE SCORE ──
+function calcPairScore(pair) {
+  const s = scores[pair] || {};
+  const trend       = parseInt(s.trend       || 0);
+  const snr         = parseInt(s.snr         || 0);
+  const ema         = parseInt(s.ema         || 0);
+  const fundamental = parseInt(s.fundamental || 0);
+  const rr          = parseInt(s.rr          || 0);
+  const structure   = parseInt(s.structure   || 0);
+  return trend + snr + ema + fundamental + rr + structure;
+}
+
+function getVerdict(total) {
+  if(total >= 8) return 'priority';
+  if(total >= 5) return 'watch';
+  return 'skip';
+}
+
+// ── SCORING DROPDOWN CHANGE ──
+function onScoreChange(pair, field, value) {
+  if(!scores[pair]) scores[pair] = {};
+  scores[pair][field] = value;
+  saveScores();
+  // Update total on card
+  const total   = calcPairScore(pair);
+  const verdict = getVerdict(total);
+  const safeId  = pair.replace('/','_');
+  const totalEl = document.getElementById('sc-total-' + safeId);
+  const verdEl  = document.getElementById('sc-verdict-' + safeId);
+  const barEl   = document.getElementById('sc-bar-' + safeId);
+  const cardEl  = document.getElementById('sc-card-' + safeId);
+  if(totalEl) totalEl.textContent = total + '/10';
+  if(totalEl) totalEl.style.color = verdict==='priority'?'var(--bull)':verdict==='watch'?'var(--accent)':'var(--muted)';
+  if(verdEl)  { verdEl.textContent = verdict.charAt(0).toUpperCase()+verdict.slice(1); verdEl.className = 'score-verdict ' + verdict; }
+  if(barEl)   { barEl.style.width = (total/10*100)+'%'; barEl.style.background = verdict==='priority'?'var(--bull)':verdict==='watch'?'var(--accent)':'var(--muted)'; }
+  if(cardEl)  cardEl.className = 'score-card ' + verdict;
+  updateScoringSummary();
+}
+
+// ── UPDATE SUMMARY BAR ──
+function updateScoringSummary() {
+  const scoringPairs   = YOUR_PAIRS.filter(p => pairStatus[p] === 'scoring');
+  const notTradingPairs= YOUR_PAIRS.filter(p => pairStatus[p] === 'not-trading');
+  const allDone = [...scoringPairs, ...notTradingPairs];
+  let priority=0, watch=0, skip=notTradingPairs.length;
+  scoringPairs.forEach(p => {
+    const v = getVerdict(calcPairScore(p));
+    if(v==='priority') priority++;
+    else if(v==='watch') watch++;
+    else skip++;
+  });
+  const ts = document.getElementById('sc-total');
+  const tp = document.getElementById('sc-priority');
+  const tw = document.getElementById('sc-watch');
+  const tk = document.getElementById('sc-skip');
+  if(ts) ts.textContent = scoringPairs.length;
+  if(tp) tp.textContent = priority;
+  if(tw) tw.textContent = watch;
+  if(tk) tk.textContent = skip;
+}
+
+// ── FILTER ──
+function setScoringFilter(f) {
+  scoringFilter = f;
+  ['all','priority','watch','skip'].forEach(x => {
+    const btn = document.getElementById('sf-' + x);
+    if(btn) btn.className = 'filter-btn' + (x === f ? ' active' : '');
+  });
+  renderScoringCards();
+}
+
+// ── RENDER ALL SCORING CARDS ──
+function renderScoringCards() {
+  const container = document.getElementById('scoringCardsContainer');
+  if(!container) return;
+  container.innerHTML = '';
+
+  const scoringPairs    = YOUR_PAIRS.filter(p => pairStatus[p] === 'scoring');
+  const notTradingPairs = YOUR_PAIRS.filter(p => pairStatus[p] === 'not-trading');
+
+  // Sort scoring pairs by score descending
+  const sorted = [...scoringPairs].sort((a,b) => calcPairScore(b) - calcPairScore(a));
+
+  // Apply filter
+  let toShow = sorted;
+  if(scoringFilter === 'priority') toShow = sorted.filter(p => getVerdict(calcPairScore(p)) === 'priority');
+  else if(scoringFilter === 'watch') toShow = sorted.filter(p => getVerdict(calcPairScore(p)) === 'watch');
+  else if(scoringFilter === 'skip') toShow = [...sorted.filter(p => getVerdict(calcPairScore(p)) === 'skip'), ...notTradingPairs];
+
+  // Render scoring cards
+  toShow.forEach(pair => {
+    if(pairStatus[pair] === 'not-trading') {
+      container.appendChild(buildNotTradingCard(pair));
+    } else {
+      container.appendChild(buildScoringCard(pair));
     }
-
-    const dirClass = r.verdict==='GO'?'bull-card':r.verdict==='WATCH'?'watch-card':r.direction==='bearish'?'bear-card':'avoid-card';
-    const dirBadge = r.direction==='bullish'?'<span class="direction-badge bull-badge">▲ BULLISH</span>':r.direction==='bearish'?'<span class="direction-badge bear-badge">▼ BEARISH</span>':'<span class="direction-badge mixed-badge">— MIXED</span>';
-    const vc = r.verdict==='GO'?'var(--bull)':r.verdict==='WATCH'?'var(--warn)':'var(--muted)';
-    const vi = r.verdict==='GO'?'✦ GO':r.verdict==='WATCH'?'◎ WATCH':'✕ AVOID';
-    const aligned = r.wTrend===r.dTrend&&r.dTrend===r.h4Trend&&r.wTrend!=='neutral';
-    const dec = r.currentPrice<10?3:5;
-
-    const hasConfluence = r.aois && r.aois.some(a=>a.source==='combined');
-
-    const aoisHtml = r.aois && r.aois.length>0
-      ? r.aois.map(a=>{
-          const isBR = a.type.includes('B&R');
-          const typeColor = isBR ? 'color:var(--warn)' : (a.type==='support'?'color:var(--bull)':'color:var(--bear)');
-          return `<div class="aoi-box">
-            <div class="aoi-level">${a.level.toFixed(dec)} ${aoiSourceBadge(a.source)}</div>
-            <div class="aoi-detail" style="${typeColor}">${a.type}</div>
-            <div class="aoi-detail">${a.touches} touches · ~${a.distancePips} pips away</div>
-          </div>`;
-        }).join('')
-      : `<div style="font-size:12px;color:var(--muted);font-family:var(--font-mono)">No valid AOI detected — verify manually on TradingView</div>`;
-
-    const note = r.verdict==='GO'
-      ? `<span style="color:var(--bull)">Priority pair this week.</span> All 3 TFs aligned${hasConfluence?' with W+D confluence AOI':' with valid AOI'}. Watch for engulfing rejection at AOI during London session (08:00–17:30 GMT). Entry on 2H or 1H only. Set and forget.`
-      : r.verdict==='WATCH'
-      ? `<span style="color:var(--warn)">Monitor this pair.</span> Partial TF alignment. Confirm structure on TradingView before considering entry. Only trade if all boxes check out by Mon/Tue.`
-      : `<span style="color:var(--muted)">Skip this week.</span> TFs not aligned or no valid AOI found within trend structure. Do not force a setup.`;
-
-    el.className=`pair-card ${dirClass}`;
-
-    // Show the key structural levels the algorithm is tracking
-    const dHigh = r.dKeyHigh ? r.dKeyHigh.toFixed(dec) : '—';
-    const dLow  = r.dKeyLow  ? r.dKeyLow.toFixed(dec)  : '—';
-    const structLabel = r.direction==='bullish'
-      ? `<div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:8px;line-height:1.7">
-           Key HH: <span style="color:var(--bull)">${dHigh}</span><br>
-           Key HL: <span style="color:var(--bull)">${dLow}</span>
-         </div>`
-      : r.direction==='bearish'
-      ? `<div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:8px;line-height:1.7">
-           Key LH: <span style="color:var(--bear)">${dHigh}</span><br>
-           Key LL: <span style="color:var(--bear)">${dLow}</span>
-         </div>`
-      : '';
-
-    el.innerHTML=`
-      <div class="card-header">
-        <div class="card-left">
-          <span class="pair-name">${r.pair}</span>
-          ${dirBadge}
-          <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">${r.currentPrice.toFixed(dec)}</span>
-        </div>
-        <span style="font-family:var(--font-mono);font-weight:700;font-size:14px;color:${vc}">${vi}</span>
-      </div>
-      <div class="card-body">
-        <div class="card-section">
-          <div class="cs-label">Trend alignment</div>
-          <div class="tf-row">${trendPill('W',r.wTrend)}${trendPill('D',r.dTrend)}${trendPill('4H',r.h4Trend)}</div>
-          <div class="checklist">
-            <div class="check-item ${aligned?'pass':'warn'}">
-              <span style="width:14px;display:inline-block">${aligned?'✓':'△'}</span>
-              ${aligned?'All 3 TFs aligned':'TFs not fully aligned'}
-            </div>
-            <div class="check-item ${r.aois&&r.aois.length>0?'pass':'fail'}">
-              <span style="width:14px;display:inline-block">${r.aois&&r.aois.length>0?'✓':'✕'}</span>
-              ${r.aois&&r.aois.length>0?(hasConfluence?'W+D confluence AOI found':r.aois.length+' AOI zone'+(r.aois.length>1?'s':'')+' found'):'No valid AOI found'}
-            </div>
-            <div class="check-item ${r.hasHS?'pass':'warn'}">
-              <span style="width:14px;display:inline-block">${r.hasHS?'✓':'—'}</span>
-              ${r.hasHS?'H&S pattern detected':'No H&S pattern'}
-            </div>
-          </div>
-          ${structLabel}
-        </div>
-        <div class="card-section">
-          <div class="cs-label">Areas of interest</div>
-          ${aoisHtml}
-        </div>
-        <div class="card-section">
-          <div class="cs-label">This week's notes</div>
-          <div style="font-size:12px;line-height:1.7;color:var(--muted)">${note}</div>
-        </div>
-      </div>`;
-    c.appendChild(el);
   });
 
-  if(currentFilter==='all'&&pending.length>0) {
-    pending.forEach(pair=>{
-      const el=document.createElement('div'); el.className='pair-card pending-card';
-      el.innerHTML=`<div class="card-header"><div class="card-left"><span class="pair-name">${pair}</span><span style="font-family:var(--font-mono);font-size:11px;color:var(--accent)"><span class="spinning">⟳</span> Queued...</span></div></div>`;
-      c.appendChild(el);
-    });
+  // If filter is 'all', also append not-trading at bottom
+  if(scoringFilter === 'all') {
+    notTradingPairs.forEach(pair => container.appendChild(buildNotTradingCard(pair)));
   }
+
+  if(container.children.length === 0) {
+    container.innerHTML = '<div class="empty">No pairs match this filter.</div>';
+  }
+
+  updateScoringSummary();
+}
+
+function buildNotTradingCard(pair) {
+  const el = document.createElement('div');
+  el.className = 'score-card not-trading-card';
+  el.innerHTML = `
+    <div class="score-card-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="score-pair-name">${pair}</span>
+        <span class="score-verdict not-trading">Not Trading</span>
+      </div>
+      <div class="score-total-badge" style="color:var(--bear)">—</div>
+    </div>`;
+  return el;
+}
+
+function buildScoringCard(pair) {
+  const s      = scores[pair] || {};
+  const total  = calcPairScore(pair);
+  const verdict= getVerdict(total);
+  const safeId = pair.replace('/','_');
+  const macroEvents = getMacroEventsForPair(pair);
+  const macroHtml = macroEvents.length > 0
+    ? macroEvents.map(e => `⚡ ${e.day}: ${e.name}`).join('<br>')
+    : 'No high-impact events this week';
+
+  const el = document.createElement('div');
+  el.className = 'score-card ' + verdict;
+  el.id = 'sc-card-' + safeId;
+
+  el.innerHTML = `
+    <div class="score-card-header">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="score-pair-name">${pair}</span>
+        <span class="score-verdict ${verdict}" id="sc-verdict-${safeId}">${verdict.charAt(0).toUpperCase()+verdict.slice(1)}</span>
+      </div>
+      <div>
+        <div class="score-total-badge" id="sc-total-${safeId}" style="color:${verdict==='priority'?'var(--bull)':verdict==='watch'?'var(--accent)':'var(--muted)'}">${total}/10</div>
+        <div class="score-progress-bar-wrap">
+          <div class="score-progress-bar" id="sc-bar-${safeId}" style="width:${total/10*100}%;background:${verdict==='priority'?'var(--bull)':verdict==='watch'?'var(--accent)':'var(--muted)'}"></div>
+        </div>
+      </div>
+    </div>
+    <div class="score-card-body">
+
+      <div class="score-field">
+        <div class="score-field-label">1. Trend alignment</div>
+        <select class="score-select" onchange="onScoreChange('${pair}','trend',this.value)">
+          <option value="0" ${(s.trend||'0')==='0'?'selected':''}>0 — No alignment</option>
+          <option value="1" ${s.trend==='1'?'selected':''}>1 — 2 of 3 TFs align</option>
+          <option value="2" ${s.trend==='2'?'selected':''}>2 — All 3 TFs align</option>
+        </select>
+        <select class="score-direction-select" onchange="onScoreChange('${pair}','direction',this.value)">
+          <option value="" ${!s.direction?'selected':''}>— Direction —</option>
+          <option value="Bullish" ${s.direction==='Bullish'?'selected':''}>▲ Bullish</option>
+          <option value="Bearish" ${s.direction==='Bearish'?'selected':''}>▼ Bearish</option>
+        </select>
+      </div>
+
+      <div class="score-field">
+        <div class="score-field-label">2. Near support / resistance</div>
+        <select class="score-select" onchange="onScoreChange('${pair}','snr',this.value)">
+          <option value="0" ${(s.snr||'0')==='0'?'selected':''}>0 — Not near a level</option>
+          <option value="1" ${s.snr==='1'?'selected':''}>1 — Further from level</option>
+          <option value="2" ${s.snr==='2'?'selected':''}>2 — Near to level</option>
+        </select>
+      </div>
+
+      <div class="score-field">
+        <div class="score-field-label">3. EMA alignment</div>
+        <select class="score-select" onchange="onScoreChange('${pair}','ema',this.value)">
+          <option value="0" ${(s.ema||'0')==='0'?'selected':''}>0 — No EMA alignment</option>
+          <option value="1" ${s.ema==='1'?'selected':''}>1 — Price + 20/50 align on D</option>
+          <option value="2" ${s.ema==='2'?'selected':''}>2 — Price + 20/50/200 align on D</option>
+        </select>
+      </div>
+
+      <div class="score-field">
+        <div class="score-field-label">4. Fundamental bias</div>
+        <select class="score-select" onchange="onScoreChange('${pair}','fundamental',this.value)">
+          <option value="0" ${(s.fundamental||'0')==='0'?'selected':''}>0 — No macro support</option>
+          <option value="1" ${s.fundamental==='1'?'selected':''}>1 — Macro event supports bias</option>
+        </select>
+        <div class="score-macro-events">${macroHtml}</div>
+      </div>
+
+      <div class="score-field">
+        <div class="score-field-label">5. Clean R:R</div>
+        <select class="score-select" onchange="onScoreChange('${pair}','rr',this.value)">
+          <option value="0" ${(s.rr||'0')==='0'?'selected':''}>0 — R:R less than 1:2</option>
+          <option value="2" ${s.rr==='2'?'selected':''}>2 — Clean R:R ≥ 1:2</option>
+        </select>
+      </div>
+
+      <div class="score-field">
+        <div class="score-field-label">6. Market structure quality</div>
+        <select class="score-select" onchange="onScoreChange('${pair}','structure',this.value)">
+          <option value="0" ${(s.structure||'0')==='0'?'selected':''}>0 — Choppy / ranging / unclear</option>
+          <option value="1" ${s.structure==='1'?'selected':''}>1 — Clear and clean structure</option>
+        </select>
+      </div>
+
+    </div>`;
+  return el;
+}
+
+function clearScores() {
+  if(!confirm('Clear all scores for this week?')) return;
+  scores = {};
+  pairStatus = {};
+  saveScores();
+  buildScoringPairsGrid();
+  document.getElementById('scoringPhase2').style.display = 'none';
+  document.getElementById('scoringPhase1').style.display = 'block';
 }
 
 // ══════════════════════════════════════════════════════
@@ -2845,7 +2413,7 @@ function loadRiskCalc() {
     if(d.pair)    document.getElementById('riskPair').value    = d.pair;
     if(d.sl)      document.getElementById('riskSL').value      = d.sl;
     // Recalculate with restored values if all fields are present
-    // Values restored — press Calculate to see results
+    if(d.balance && d.pct && d.pair && d.sl) calcRisk();
   } catch(e) {}
 }
 
@@ -2940,6 +2508,7 @@ function showPage(page, btn) {
   if(page === 'checklist')    renderChecklist();
   if(page === 'risk')         loadRiskCalc();
   if(page === 'calendar')     { renderCalendar(); renderTodo(); }
+  if(page === 'analysis')     { buildScoringPairsGrid(); }
 }
 
 // ══════════════════════════════════════════════════════
@@ -3031,13 +2600,11 @@ function calToday() {
 // Build a map of high-impact news events keyed by date, using
 // the actual dates from MACRO_EVENTS (date field) for the current loaded week
 function getNewsEventsByDate() {
-  // Calendar only shows USD high impact events
   const map = {};
-  const weekDates = getWeekDates();
+  const weekDates = getWeekDates(); // SAT..FRI dates for the current trading week
   (MACRO_EVENTS || []).forEach(e => {
     if(e.impact !== 'high') return;
-    if(e.currency !== 'USD') return; // Only USD events in calendar
-    const d = weekDates[e.day];
+    const d = weekDates[e.day]; // e.day is MON/TUE/WED/THU etc — same mapping as Macro Events tab
     if(!d) return;
     const key = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
     if(!map[key]) map[key] = [];
@@ -3311,9 +2878,58 @@ function deleteTodo(i) {
 }
 
 
+// ── INIT ──
+function init() {
+  clearOldMacroCaches();
+
+  const sat = getUpcomingWeekMonday(); // Saturday start of trading week
+  const fri = new Date(sat); fri.setDate(sat.getDate() + 6); // Saturday + 6 = Friday
+  const fmt      = x => x.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  const fmtShort = x => x.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  const weekStr  = `${fmtShort(sat)} – ${fmt(fri)}`;
+  document.getElementById('navWeek').textContent = weekStr;
+  document.getElementById('macroSubtitle').textContent = `Week of ${weekStr}`;
+
+  const saved = localStorage.getItem('td_api_key');
+  if(saved) {
+    apiKey = saved;
+    document.getElementById('apiKey').value = saved;
+    document.getElementById('apiStatus').className = 'api-status ok';
+    document.getElementById('apiStatus').textContent = 'API key loaded';
+  }
+
+  // Load macro events — use cache if available, otherwise fetch live
+  const cachedMacro = loadMacroCache();
+  if(cachedMacro && cachedMacro.length > 0) {
+    MACRO_EVENTS = cachedMacro;
+    macroLoadStatus = 'loaded';
+    updateMacroStatus('loaded', cachedMacro.length);
+    renderMacroEvents();
+  } else {
+    macroLoadStatus = 'loading';
+    renderMacroEvents();
+    fetchMacroEvents();
+  }
+}
+
 window.onload = function() {
   hideSplash();
+  clearOldScoreCaches();
   init();
+  loadScores();
+  buildScoringPairsGrid();
+  // If scoring pairs exist from saved state, go straight to phase 2
+  const hasScoring = YOUR_PAIRS.some(p => pairStatus[p] === 'scoring');
+  if(hasScoring) {
+    document.getElementById('scoringPhase1').style.display = 'none';
+    document.getElementById('scoringPhase2').style.display = 'block';
+    const mon = getUpcomingWeekMonday();
+    const fri = getFridayEnd();
+    const fmt = x => x.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+    const wl = document.getElementById('scoringWeekLabel');
+    if(wl) wl.textContent = `${fmt(mon)} – ${fmt(fri)}`;
+    renderScoringCards();
+  }
   loadStrategy();
   loadPrinciples();
   loadInvestments();
