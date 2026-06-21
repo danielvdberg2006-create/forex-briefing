@@ -854,7 +854,7 @@
           <option>GBP/USD</option><option>GBP/JPY</option><option>GBP/NZD</option>
           <option>AUD/JPY</option><option>AUD/USD</option><option>AUD/CAD</option>
           <option>AUD/NZD</option><option>USD/CHF</option><option>EUR/USD</option>
-          <option>EUR/NZD</option><option>GBP/CHF</option><option>AUD/CHF</option><option>EUR/CHF</option>
+          <option>EUR/NZD</option><option>GBP/CHF</option><option>AUD/CHF</option><option>EUR/CHF</option><option>EUR/AUD</option>
         </select>
       </div>
       <div class="risk-field">
@@ -974,15 +974,15 @@ const YOUR_PAIRS = [
   'NZD/USD','USD/CAD','USD/JPY','CAD/JPY','GBP/CAD','EUR/JPY',
   'NZD/CAD','EUR/GBP','GBP/AUD','GBP/USD','GBP/JPY','GBP/NZD',
   'AUD/JPY','AUD/USD','AUD/CAD','AUD/NZD','USD/CHF','EUR/USD',
-  'EUR/NZD','GBP/CHF','AUD/CHF','EUR/CHF'
+  'EUR/NZD','GBP/CHF','AUD/CHF','EUR/CHF','EUR/AUD'
 ];
 
 // ── CURRENCY → PAIRS MAP ──
 const CURRENCY_PAIRS_MAP = {
   USD: ['EUR/USD','GBP/USD','USD/JPY','USD/CAD','AUD/USD','USD/CHF','NZD/USD'],
   GBP: ['GBP/USD','EUR/GBP','GBP/JPY','GBP/AUD','GBP/CHF','GBP/CAD','GBP/NZD'],
-  EUR: ['EUR/USD','EUR/GBP','EUR/JPY','EUR/NZD','EUR/CHF'],
-  AUD: ['AUD/USD','GBP/AUD','AUD/JPY','AUD/CAD','AUD/NZD','AUD/CHF'],
+  EUR: ['EUR/USD','EUR/GBP','EUR/JPY','EUR/NZD','EUR/CHF','EUR/AUD'],
+  AUD: ['AUD/USD','GBP/AUD','AUD/JPY','AUD/CAD','AUD/NZD','AUD/CHF','EUR/AUD'],
   CAD: ['USD/CAD','GBP/CAD','CAD/JPY','AUD/CAD','NZD/CAD'],
   NZD: ['NZD/USD','NZD/CAD','GBP/NZD','AUD/NZD','EUR/NZD'],
   JPY: ['USD/JPY','EUR/JPY','GBP/JPY','CAD/JPY','AUD/JPY'],
@@ -1044,7 +1044,8 @@ let macroLoadStatus = 'idle'; // idle | loading | loaded | failed
 // ── MACRO CACHE ──
 function getMacroWeekKey() {
   const mon = getUpcomingWeekMonday();
-  return `forex_macro_${mon.getFullYear()}_${mon.getMonth()}_${mon.getDate()}`;
+  // v2 — bumped to invalidate any cache saved before the date-window fix
+  return `forex_macro_v2_${mon.getFullYear()}_${mon.getMonth()}_${mon.getDate()}`;
 }
 
 function saveMacroCache(events) {
